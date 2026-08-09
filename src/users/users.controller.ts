@@ -1,6 +1,8 @@
-import { Body, Controller, Get, Param, Post, Query } from '@nestjs/common';
+import { Body, Controller, Get, HttpException, HttpStatus, NotFoundException, Param, ParseBoolPipe, ParseIntPipe, Post, Query, UseFilters, UseGuards, ValidationPipe } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
+import { AuthGuard } from 'src/auth/auth.guard';
+import { Public } from 'src/common/decorators/public.decorator';
 
 @Controller('users')
 export class UsersController {
@@ -51,11 +53,15 @@ export class UsersController {
 
   // ------> with DI - inject service
   @Post()
-  create(@Body() createUserDto: CreateUserDto) {
-    return createUserDto;
+  // @Public()
+  // @UseGuards(AuthGuard)
+  create(@Body() dto: CreateUserDto) {
+    console.log(dto);
+    return dto;
   }
 
   @Get()
+  @Public()
   findAll(@Query('page') page: string, @Query('limit') limit: string) {
     console.log(page);
     console.log(limit);
@@ -63,12 +69,17 @@ export class UsersController {
   }
 
   @Get(':id')
+  @UseFilters(HttpException)
   findOne(
-    @Param('id') id: number,
+    @Param('id', ParseIntPipe) id: number,
     @Query('page') page: string,
     @Query('limit') limit: string,
+    @Query('active', ParseBoolPipe) active: boolean,
   ) {
-    console.log(id, page, limit);
+    // if (!id) {
+    //   throw new HttpException('Forbidden', HttpStatus.FORBIDDEN);
+    // }
+    console.log(id, page, limit, active);
     return this.usersService.findOne(id);
   }
 }
