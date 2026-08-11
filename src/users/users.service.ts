@@ -1,4 +1,8 @@
-import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
@@ -15,7 +19,6 @@ export class UsersService {
 
   async create(dto: CreateUserDto) {
     const findByEmail = await this.usersRepository.findBy({ email: dto.email });
-    console.log(findByEmail);
     if (findByEmail.length > 0) {
       throw new ConflictException('The email aready in use.');
     }

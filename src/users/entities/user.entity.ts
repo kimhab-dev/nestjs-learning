@@ -8,8 +8,11 @@ export class User {
   @Column()
   name: string;
 
-  @Column()
-  age: number;
+  @Column({
+    type: 'int',
+    nullable: true, // tell database tar can oy colunm null
+  })
+  age: number | null; // tell typescript this field can number orr null
 
   @Column()
   email: string;

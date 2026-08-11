@@ -19,7 +19,10 @@ import {
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
+
 import { AuthGuard } from 'src/auth/auth.guard';
+import { JWTAuthGuard } from '../auth/guards/jwt-auth.guard';
+
 import { Public } from 'src/common/decorators/public.decorator';
 import { SuccessMessage } from 'src/common/decorators/success-message.decorator';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -74,14 +77,15 @@ export class UsersController {
   // ------> with DI - inject service
   @Post()
   // @Public()
-  // @UseGuards(AuthGuard)
+  @UseGuards(JWTAuthGuard)
   @SuccessMessage('Create user success.')
   create(@Body() dto: CreateUserDto) {
     return this.usersService.create(dto);
   }
 
   @Get()
-  @SuccessMessage('Get all user success.')
+  @UseGuards(JWTAuthGuard)
+  @SuccessMessage('Get all user successfully.')
   @Public()
   findAll(@Query('page') page: string, @Query('limit') limit: string) {
     return this.usersService.findAll();
@@ -89,7 +93,8 @@ export class UsersController {
 
   @Get(':id')
   // @UseFilters(HttpException)
-  @SuccessMessage('Get user success.')
+  @UseGuards(JWTAuthGuard)
+  @SuccessMessage('Get user successfully.')
   findOne(
     @Param('id', ParseIntPipe) id: number,
     @Query('page') page: string,
@@ -105,12 +110,14 @@ export class UsersController {
   }
 
   @Put(':id')
+  @UseGuards(JWTAuthGuard)
   @SuccessMessage('Update user success.')
   update(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdateUserDto) {
     return this.usersService.update(id, dto);
   }
 
   @Delete(':id')
+  @UseGuards(JWTAuthGuard)
   @SuccessMessage('Delete use success.')
   remove(@Param('id', ParseIntPipe) id: number) {
     return this.usersService.remove(id);
