@@ -5,10 +5,12 @@ import { IS_PUBLIC_KEY } from 'src/common/decorators/public.decorator';
 
 // guard mean in khmer is chmam
 @Injectable()
-export class AuthGuard implements CanActivate { // like implement NestMiddleware in Middleware
+export class AuthGuard implements CanActivate {
+  // like implement NestMiddleware in Middleware
   constructor(private readonly reflector: Reflector) {}
-  canActivate(context: ExecutionContext
-): boolean | Promise<boolean> | Observable<boolean> {
+  canActivate(
+    context: ExecutionContext,
+  ): boolean | Promise<boolean> | Observable<boolean> {
     const request = context.switchToHttp().getRequest();
     // console.log(request);
     // console.log(request.method);
@@ -16,7 +18,7 @@ export class AuthGuard implements CanActivate { // like implement NestMiddleware
     // console.log("Authorization", request.header.Authorization);
     const isPublic = this.reflector.get<boolean>(
       IS_PUBLIC_KEY,
-      context.getHandler() // mean calling method 
+      context.getHandler(), // mean calling method
     );
     if (isPublic) {
       return true;

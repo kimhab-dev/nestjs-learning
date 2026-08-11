@@ -1,8 +1,28 @@
-import { Body, Controller, Get, HttpException, HttpStatus, NotFoundException, Param, ParseBoolPipe, ParseIntPipe, Post, Query, UseFilters, UseGuards, ValidationPipe } from '@nestjs/common';
+import {
+  BadRequestException,
+  Body,
+  Controller,
+  Delete,
+  Get,
+  HttpException,
+  HttpStatus,
+  NotFoundException,
+  Param,
+  ParseBoolPipe,
+  ParseIntPipe,
+  Post,
+  Put,
+  Query,
+  UseFilters,
+  UseGuards,
+  ValidationPipe,
+} from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { AuthGuard } from 'src/auth/auth.guard';
 import { Public } from 'src/common/decorators/public.decorator';
+import { SuccessMessage } from 'src/common/decorators/success-message.decorator';
+import { UpdateUserDto } from './dto/update-user.dto';
 
 @Controller('users')
 export class UsersController {
@@ -55,21 +75,21 @@ export class UsersController {
   @Post()
   // @Public()
   // @UseGuards(AuthGuard)
+  @SuccessMessage('Create user success.')
   create(@Body() dto: CreateUserDto) {
-    console.log(dto);
-    return dto;
+    return this.usersService.create(dto);
   }
 
   @Get()
+  @SuccessMessage('Get all user success.')
   @Public()
   findAll(@Query('page') page: string, @Query('limit') limit: string) {
-    console.log(page);
-    console.log(limit);
     return this.usersService.findAll();
   }
 
   @Get(':id')
-  @UseFilters(HttpException)
+  // @UseFilters(HttpException)
+  @SuccessMessage('Get user success.')
   findOne(
     @Param('id', ParseIntPipe) id: number,
     @Query('page') page: string,
@@ -79,7 +99,20 @@ export class UsersController {
     // if (!id) {
     //   throw new HttpException('Forbidden', HttpStatus.FORBIDDEN);
     // }
-    console.log(id, page, limit, active);
-    return this.usersService.findOne(id);
+    // throw new BadRequestException();
+    // console.log(id, page, limit, active);
+    return this.usersService.findOne(id);;
+  }
+
+  @Put(':id')
+  @SuccessMessage('Update user success.')
+  update(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdateUserDto) {
+    return this.usersService.update(id, dto);
+  }
+
+  @Delete(':id')
+  @SuccessMessage('Delete use success.')
+  remove(@Param('id', ParseIntPipe) id: number) {
+    return this.usersService.remove(id);
   }
 }

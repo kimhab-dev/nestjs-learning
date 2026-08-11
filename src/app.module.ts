@@ -1,17 +1,42 @@
-import { Module, MiddlewareConsumer, NestModule, RequestMethod } from '@nestjs/common';
+import {
+  Module,
+  MiddlewareConsumer,
+  NestModule,
+  RequestMethod,
+} from '@nestjs/common';
+import { TypeOrmModule } from '@nestjs/typeorm';
 import { LoggerMiddleware } from './logger/logger.middleware';
 import { CurrentTimeMiddleware } from './logger/currentime.middleware';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { UsersController } from './users/users.controller';
-import { UsersService } from './users/users.service';
+import { UsersModule } from './users/users.module';
 import { ProductsModule } from './products/products.module';
 import { OrdersModule } from './orders/orders.module';
+import { ConfigModule } from '@nestjs/config';
 
 @Module({
-  imports: [ProductsModule, OrdersModule],
-  controllers: [AppController, UsersController], // register controller
-  providers: [AppService, UsersService], // register service
+  imports: [
+    ConfigModule.forRoot({
+      isGlobal: true,
+    }),
+
+    TypeOrmModule.forRoot({
+      type: 'mysql',
+      host: process.env.DB_HOST,
+      port: Number(process.env.DB_PORT),
+      username: process.env.DB_USERNAME,
+      password: process.env.DB_PASSWORD,
+      database: process.env.DB_DATABASE,
+
+      autoLoadEntities: true,
+      synchronize: true,
+    }),
+    ProductsModule,
+    OrdersModule,
+    UsersModule,
+  ],
+  controllers: [AppController], // register controller
+  providers: [AppService], // register service
 })
 export class AppModule implements NestModule {
   //init middleware into route
@@ -34,6 +59,5 @@ export class AppModule implements NestModule {
         method: RequestMethod.GET,
       })
       .forRoutes('*');
-
   }
 }
