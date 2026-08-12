@@ -32,7 +32,9 @@ export class UsersService {
   }
 
   async findAll() {
-    return this.usersRepository.find();
+    const users = await this.usersRepository.find();
+    const result = users.map(({ password, ...user }) => user);
+    return result;
   }
 
   async findOne(id) {

@@ -4,6 +4,8 @@ import {
   NestModule,
   RequestMethod,
 } from '@nestjs/common';
+import { APP_GUARD } from '@nestjs/core';
+import { JWTAuthGuard } from './auth/guards/jwt-auth.guard';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { LoggerMiddleware } from './logger/logger.middleware';
 import { CurrentTimeMiddleware } from './logger/currentime.middleware';
@@ -38,22 +40,17 @@ import { ConfigModule } from '@nestjs/config';
     UsersModule,
   ],
   controllers: [AppController], // register controller
-  providers: [AppService], // register service
+  providers: [
+    AppService,
+    {
+      provide: APP_GUARD, // register guaed to global for not write @UserGuard() any ware
+      useClass: JWTAuthGuard, // class for work
+    },
+  ], // register service
 })
 export class AppModule implements NestModule {
   //init middleware into route
   configure(consumer: MiddlewareConsumer) {
-    // -----> optoin 1 : use by endpoint and method
-    // consumer
-    //   .apply(LoggerMiddleware) // nest tell coulde using LoggerMiddleware to apply all route
-    //   .forRoutes({ path: 'users', method: RequestMethod.GET });
-
-    // -----> optoin 2 : apply all route in usersController. tus bey yg change endpoint kor vea nv der. recommand by nestjs
-    // consumer
-    //   .apply(LoggerMiddleware) // nest tell coulde using LoggerMiddleware to apply all route
-    //   .forRoutes(UsersController);
-
-    // -----> optoin 2 : apply all route leark leng tah route yg jong tuk.
     consumer
       .apply(LoggerMiddleware, CurrentTimeMiddleware)
       .exclude({

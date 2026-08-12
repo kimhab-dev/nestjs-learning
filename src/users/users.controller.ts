@@ -26,6 +26,9 @@ import { JWTAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { Public } from 'src/common/decorators/public.decorator';
 import { SuccessMessage } from 'src/common/decorators/success-message.decorator';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { RolesGuard } from 'src/auth/guards/roles.guard';
+import { Roles } from 'src/auth/decorator/roles.decorator';
+import { Role } from './enums/role.enum';
 
 @Controller('users')
 export class UsersController {
@@ -76,15 +79,16 @@ export class UsersController {
 
   // ------> with DI - inject service
   @Post()
-  // @Public()
-  @UseGuards(JWTAuthGuard)
+  @UseGuards(RolesGuard)
+  @Roles(Role.ADMIN)
   @SuccessMessage('Create user success.')
   create(@Body() dto: CreateUserDto) {
     return this.usersService.create(dto);
   }
 
   @Get()
-  @UseGuards(JWTAuthGuard)
+  @UseGuards(RolesGuard)
+  @Roles(Role.ADMIN)
   @SuccessMessage('Get all user successfully.')
   @Public()
   findAll(@Query('page') page: string, @Query('limit') limit: string) {
@@ -93,7 +97,8 @@ export class UsersController {
 
   @Get(':id')
   // @UseFilters(HttpException)
-  @UseGuards(JWTAuthGuard)
+  @UseGuards(RolesGuard)
+  @Roles(Role.ADMIN)
   @SuccessMessage('Get user successfully.')
   findOne(
     @Param('id', ParseIntPipe) id: number,
@@ -110,14 +115,16 @@ export class UsersController {
   }
 
   @Put(':id')
-  @UseGuards(JWTAuthGuard)
+  @UseGuards(RolesGuard)
+  @Roles(Role.ADMIN)
   @SuccessMessage('Update user success.')
   update(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdateUserDto) {
     return this.usersService.update(id, dto);
   }
 
   @Delete(':id')
-  @UseGuards(JWTAuthGuard)
+  @UseGuards(RolesGuard)
+  @Roles(Role.ADMIN)
   @SuccessMessage('Delete use success.')
   remove(@Param('id', ParseIntPipe) id: number) {
     return this.usersService.remove(id);

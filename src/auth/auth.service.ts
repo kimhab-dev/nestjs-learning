@@ -35,7 +35,7 @@ export class AuthService {
       password: hashPassword,
     });
     const saveUser = await this.usersRepository.save(user);
-    const { password, age, ...result } = saveUser;
+    const { password, age, role, ...result } = saveUser;
     return result;
   }
 
@@ -56,13 +56,24 @@ export class AuthService {
     const payload = {
       sub: findByEmail.id,
       email: findByEmail.email,
+      role: findByEmail.role,
     };
-    const {password, age, ...user} = findByEmail;
+    const {password, age, role, ...user} = findByEmail;
     const token = this.jwtService.sign(payload);
 
     return {
       user,
       token,
     };
+  }
+
+  async getProfile(id) {
+    const userProfile = await this.usersRepository.find({
+      where: {
+        id,
+      },
+    });
+    const { password, ...profile } = userProfile[0];
+    return profile;
   }
 }
