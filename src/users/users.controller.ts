@@ -111,7 +111,7 @@ export class UsersController {
     // }
     // throw new BadRequestException();
     // console.log(id, page, limit, active);
-    return this.usersService.findOne(id);;
+    return this.usersService.findOne(id);
   }
 
   @Put(':id')

@@ -44,7 +44,7 @@ import { ConfigModule } from '@nestjs/config';
     AppService,
     {
       provide: APP_GUARD, // register guaed to global for not write @UserGuard() any ware
-      useClass: JWTAuthGuard, // class for work
+      useClass: JWTAuthGuard, // class for
     },
   ], // register service
 })

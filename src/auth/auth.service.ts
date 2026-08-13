@@ -7,7 +7,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
 import * as bcrypt from 'bcrypt';
-import {JwtService} from '@nestjs/jwt';
+import { JwtService } from '@nestjs/jwt';
 
 import { User } from 'src/users/entities/user.entity';
 import { RegisterDto } from './dto/register.dto';
@@ -35,6 +35,7 @@ export class AuthService {
       password: hashPassword,
     });
     const saveUser = await this.usersRepository.save(user);
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { password, age, role, ...result } = saveUser;
     return result;
   }
@@ -58,7 +59,8 @@ export class AuthService {
       email: findByEmail.email,
       role: findByEmail.role,
     };
-    const {password, age, role, ...user} = findByEmail;
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { password, age, role, ...user } = findByEmail;
     const token = this.jwtService.sign(payload);
 
     return {
@@ -70,9 +72,11 @@ export class AuthService {
   async getProfile(id) {
     const userProfile = await this.usersRepository.find({
       where: {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         id,
       },
     });
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { password, ...profile } = userProfile[0];
     return profile;
   }

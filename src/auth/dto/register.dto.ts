@@ -8,18 +8,18 @@ import {
 } from 'class-validator';
 
 export class RegisterDto {
-    @IsNotEmpty()
-    @IsString()
-    name: string;
+  @IsNotEmpty()
+  @IsString()
+  name: string;
 
-    @IsEmail()
-    email: string;
+  @IsEmail()
+  email: string;
 
-    @MinLength(6)
-    @MaxLength(255)
-    @Matches(/^(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])/, {
+  @MinLength(6)
+  @MaxLength(255)
+  @Matches(/^(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])/, {
     message:
-          'Password must contain at least one uppercase letter, one number, and one special character.',
-    })
-    password: string;
+      'Password must contain at least one uppercase letter, one number, and one special character.',
+  })
+  password: string;
 }

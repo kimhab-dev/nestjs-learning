@@ -23,7 +23,7 @@ export class TransformInterceptor implements NestInterceptor {
         return {
           result: true,
           message: message,
-          data
+          data,
         };
       }),
     );

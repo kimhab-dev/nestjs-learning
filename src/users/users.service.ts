@@ -33,6 +33,7 @@ export class UsersService {
 
   async findAll() {
     const users = await this.usersRepository.find();
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const result = users.map(({ password, ...user }) => user);
     return result;
   }

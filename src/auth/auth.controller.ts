@@ -10,8 +10,8 @@ import { Public } from 'src/common/decorators/public.decorator';
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
-  @Post('register')
   @Public() // make route to can public access
+  @Post('register')
   @SuccessMessage('Register successfully.')
   register(@Body() dto: RegisterDto) {
     return this.authService.register(dto);
