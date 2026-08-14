@@ -58,7 +58,13 @@ export class UsersService {
     if (!user) {
       throw new NotFoundException('User not found.');
     }
-    return this.usersRepository.save(user);
+    const findByEmail = await this.usersRepository.findBy({ email: dto.email });
+    if (findByEmail.length > 0) {
+      throw new ConflictException('The email aready in use.');
+    }
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { password, role, ...result } = user;
+    return this.usersRepository.save(result);
   }
 
   async remove(id: number) {

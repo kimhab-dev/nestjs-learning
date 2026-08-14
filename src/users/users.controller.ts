@@ -90,7 +90,6 @@ export class UsersController {
   @UseGuards(RolesGuard)
   @Roles(Role.ADMIN)
   @SuccessMessage('Get all user successfully.')
-  @Public()
   findAll(@Query('page') page: string, @Query('limit') limit: string) {
     return this.usersService.findAll();
   }
@@ -117,7 +116,7 @@ export class UsersController {
   @Put(':id')
   @UseGuards(RolesGuard)
   @Roles(Role.ADMIN)
-  @SuccessMessage('Update user success.')
+  @SuccessMessage('Update user successfully.')
   update(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdateUserDto) {
     return this.usersService.update(id, dto);
   }
@@ -125,7 +124,7 @@ export class UsersController {
   @Delete(':id')
   @UseGuards(RolesGuard)
   @Roles(Role.ADMIN)
-  @SuccessMessage('Delete use success.')
+  @SuccessMessage('Delete use successfully.')
   remove(@Param('id', ParseIntPipe) id: number) {
     return this.usersService.remove(id);
   }

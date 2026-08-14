@@ -30,6 +30,7 @@ export class User {
   })
   role: Role;
 
+  // () => Order : is relationship tv kan Order
   @OneToMany(() => Order, (order) => order.user)
   orders: Order[];
 }
