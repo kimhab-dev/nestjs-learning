@@ -34,49 +34,6 @@ import { Role } from './enums/role.enum';
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
-  // --------> first controller - testing
-  // @Get()
-  // findAll() {
-  //   return 'Get all users ';
-  // }
-
-  // @Get('profile')
-  // profile(): string {
-  //   return 'Get profile';
-  // }
-
-  // @Post()
-  // createUser(): string {
-  //   return 'Create User';
-  // }
-
-  // @Get(':id')
-  // findOne(
-  //   @Param('id') id: number,
-  //   @Query('page') page: string,
-  //   @Query('limit') limit: string,
-  // ) {
-  //   return 'user : ' + id + ', page : ' + page + ', limit : ' + limit;
-  // }
-
-  // @Post(':id/post/:proposalId')
-  // createOne(@Param('id') id: number, @Param('proposalId') proposalId: number) {
-  //   return 'Posted user : ' + id + ', Proposal Id : ' + proposalId;
-  // }
-
-  // -----> normal post
-  // @Post()
-  // create(@Body('name') name: string, @Body('email') email: string) {
-  //   return `Hello ${name}`;
-  // }
-
-  // -----> using interfac or class
-  // class CreateUserDto {
-  //   name: string;
-  //   email: string;
-  //   password: string;
-  // }
-
   // ------> with DI - inject service
   @Post()
   @UseGuards(RolesGuard)

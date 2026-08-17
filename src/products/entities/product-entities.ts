@@ -2,15 +2,21 @@ import { BaseEntity } from 'src/database/entities/bas-entity';
 import { User } from 'src/users/entities/user.entity';
 import { Column, Entity, JoinColumn, ManyToOne } from 'typeorm';
 
-@Entity('orders')
-export class Order extends BaseEntity {
+@Entity('products')
+export class Product extends BaseEntity {
   @Column()
-  productId: number;
+  name: string;
+
+  @Column('decimal')
+  price: number;
 
   @Column()
-  total: number;
+  description: string;
 
-  @ManyToOne(() => User, (user) => user.orders)
+  @Column()
+  stock: number;
+
+  @ManyToOne(() => User, (user) => user.products)
   @JoinColumn({ name: 'user_id' })
   user: User;
 }

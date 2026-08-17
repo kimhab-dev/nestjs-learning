@@ -2,12 +2,11 @@ import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from 'typeorm';
 import { Role } from '../enums/role.enum';
 import { Order } from 'src/orders/entities/order-entitie';
 import { Exclude } from 'class-transformer';
+import { BaseEntity } from 'src/database/entities/bas-entity';
+import { Product } from 'src/products/entities/product-entities';
 
 @Entity('users')
-export class User {
-  @PrimaryGeneratedColumn()
-  id: number;
-
+export class User extends BaseEntity {
   @Column()
   name: string;
 
@@ -33,4 +32,7 @@ export class User {
   // () => Order : is relationship tv kan Order
   @OneToMany(() => Order, (order) => order.user)
   orders: Order[];
+
+  @OneToMany(() => Product, (product) => product.user)
+  products: Product[];
 }

@@ -6,6 +6,7 @@ import { Repository } from 'typeorm';
 import { OrderResponseDto } from './dto/order-response.dto';
 import { UpdateOrderDto } from './dto/update-order.dto';
 import { GetOrdersDto } from './dto/get-orders.dto';
+import { plainToInstance } from 'class-transformer';
 
 @Injectable()
 export class OrdersService {
@@ -19,18 +20,9 @@ export class OrdersService {
         user: true,
       },
     });
-    return orders.map((order) => ({
-      id: order.id,
-      productId: order.productId,
-      total: order.total,
-      user: order.user
-        ? {
-            id: order.user.id,
-            name: order.user.name,
-            email: order.user.email,
-          }
-        : null,
-    }));
+    return plainToInstance(OrderResponseDto, orders, {
+      excludeExtraneousValues: true,
+    });
   }
 
   async findOne(id: number, userId: number): Promise<OrderResponseDto> {
@@ -48,16 +40,9 @@ export class OrdersService {
     if (!order) {
       throw new NotFoundException('Order not found or not your order.');
     }
-    return {
-      id: order.id,
-      productId: order.productId,
-      total: order.total,
-      user: {
-        id: order.user.id,
-        name: order.user.name,
-        email: order.user.email,
-      },
-    };
+    return plainToInstance(OrderResponseDto, order, {
+      excludeExtraneousValues: true,
+    });
   }
 
   async findMy(userId: number, query: GetOrdersDto) {
@@ -95,19 +80,11 @@ export class OrdersService {
     // Pagination
     queryBuilder.skip(skip).take(limit);
 
-    const [orders, total] = await queryBuilder.getManyAndCount();
-    const data = orders.map((order) => ({
-      id: order.id,
-      productId: order.productId,
-      total: order.total,
-      user: {
-        id: order.user.id,
-        name: order.user.name,
-        email: order.user.email,
-      },
-    }));
+    const [orders, total] = await queryBuilder.getManyAndCount(); 
     return {
-      data,
+      items: plainToInstance(OrderResponseDto, orders, {
+        excludeExtraneousValues: true,
+      }),
       pagination: {
         page,
         limit,
@@ -153,16 +130,9 @@ export class OrdersService {
     const updatedOrder = await this.ordersRepository.save(order);
 
     // below is OrderResponseDto return to promise add function's top
-    return {
-      id: updatedOrder.id,
-      productId: updatedOrder.productId,
-      total: updatedOrder.total,
-      user: {
-        id: updatedOrder.user.id,
-        name: updatedOrder.user.name,
-        email: updatedOrder.user.email,
-      },
-    };
+    return plainToInstance(OrderResponseDto, updatedOrder, {
+      excludeExtraneousValues: true,
+    });
   }
 
   async remove(id: number, userId: number) {
