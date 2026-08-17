@@ -4,6 +4,12 @@ import { ProductsService } from './products.service';
 
 @Module({
   controllers: [ProductsController],
-  providers: [ProductsService],
+  providers: [
+    ProductsService,
+    {
+      provide: 'PRODUCT_STATUS',
+      useValue: 'active',
+    },
+  ],
 })
 export class ProductsModule {}

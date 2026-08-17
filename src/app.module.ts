@@ -46,7 +46,8 @@ import { ConfigModule } from '@nestjs/config';
       provide: APP_GUARD, // register guaed to global for not write @UserGuard() any ware
       useClass: JWTAuthGuard, // class for
     },
-  ], // register service
+  ],
+  // register service
 })
 export class AppModule implements NestModule {
   //init middleware into route
