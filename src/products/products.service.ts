@@ -1,4 +1,9 @@
-import { ConflictException, Injectable } from '@nestjs/common';
+import {
+  ConflictException,
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { Repository } from 'typeorm';
 import { Product } from './entities/product-entities';
 import { CreateProductDto } from './dto/create-product.dto';
@@ -10,13 +15,12 @@ import { plainToInstance } from 'class-transformer';
 export class ProductsService {
   constructor(
     @InjectRepository(Product)
-    private readonly productsRepository: Repository<Product>
+    private readonly productsRepository: Repository<Product>,
   ) {}
-  async create(dto: CreateProductDto, userId): Promise<ProductResponseDto> {
+
+  async create(dto: CreateProductDto, userId: number): Promise<ProductResponseDto> {
     const isProduct = await this.productsRepository.findOne({
-      where: {
-        name: dto.name,
-      },
+      where: { name: dto.name },
     });
     if (isProduct) {
       throw new ConflictException('This product is already have.');
@@ -26,21 +30,61 @@ export class ProductsService {
       price: dto.price,
       description: dto.description,
       stock: dto.stock,
-      user: {
-        id: userId,
-      },
+      user: { id: userId },
     });
-    return await this.productsRepository.save(product);
+    const saved = await this.productsRepository.save(product);
+    return plainToInstance(ProductResponseDto, saved, {
+      excludeExtraneousValues: true,
+    });
   }
 
   async findAll(): Promise<ProductResponseDto[]> {
     const products = await this.productsRepository.find({
-      relations: {
-        user: true,
-      },
+      relations: { user: true },
     });
     return plainToInstance(ProductResponseDto, products, {
       excludeExtraneousValues: true,
     });
   }
+
+  // GET /products/:id — find a single product by its id
+  async findById(id: number): Promise<ProductResponseDto> {
+    const product = await this.productsRepository.findOne({
+      where: { id },
+      relations: { user: true },
+    });
+    if (!product) {
+      throw new NotFoundException('Product not found.');
+    }
+    return plainToInstance(ProductResponseDto, product, {
+      excludeExtraneousValues: true,
+    });
+  }
+
+  // GET /products/my — get all products owned by the current user
+  async findByOwner(userId: number): Promise<ProductResponseDto[]> {
+    const products = await this.productsRepository.find({
+      where: { user: { id: userId } },
+      relations: { user: true },
+    });
+    return plainToInstance(ProductResponseDto, products, {
+      excludeExtraneousValues: true,
+    });
+  }
+
+  // DELETE /products/:id — delete a product, only if the requester owns it
+  async remove(id: number, userId: number): Promise<void> {
+    const product = await this.productsRepository.findOne({
+      where: { id },
+      relations: { user: true },
+    });
+    if (!product) {
+      throw new NotFoundException('Product not found.');
+    }
+    if (product.user.id !== userId) {
+      throw new ForbiddenException('You can only delete your own products.');
+    }
+    await this.productsRepository.delete(id);
+  }
 }
+
