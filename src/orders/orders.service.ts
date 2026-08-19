@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Order } from './entities/order-entitie';
@@ -7,12 +7,18 @@ import { OrderResponseDto } from './dto/order-response.dto';
 import { UpdateOrderDto } from './dto/update-order.dto';
 import { GetOrdersDto } from './dto/get-orders.dto';
 import { plainToInstance } from 'class-transformer';
+import { Product } from 'src/products/entities/product-entities';
+import { OrderItems } from './entities/order-item.entities';
 
 @Injectable()
 export class OrdersService {
   constructor(
     @InjectRepository(Order)
     private readonly ordersRepository: Repository<Order>,
+    @InjectRepository(OrderItems)
+    private readonly orderItemRepository: Repository<OrderItems>,
+    @InjectRepository(Product)
+    private readonly productRepository: Repository<Product>,
   ) {}
   async findAll(): Promise<OrderResponseDto[]> {
     const orders = await this.ordersRepository.find({
@@ -95,14 +101,55 @@ export class OrdersService {
   }
 
   async create(dto: CreateOrderDto, userId: number) {
+
+    let total = 0;
+    const orderItems: OrderItems[] = [];
+    for (const item of dto.items) {
+      const product = await this.productRepository.findOne({
+        where: {
+          id: item.productId,
+        },
+      });
+      if (!product) {
+        throw new NotFoundException(`Product ${item.productId} not found`);
+      }
+      if (product.stock < item.quantity) {
+        throw new BadRequestException(
+          `Not enough stock for ${product.name}. Available: ${product.stock}`,
+        );
+      }
+
+      // -----> total price
+      const subtotal = Number(product.price) * item.quantity;
+      total += subtotal;
+
+      // -----> increas and save new stock
+      product.stock -= item.quantity;
+      await this.productRepository.save(product);
+
+      // -----> create order Item
+      const orderItem = this.orderItemRepository.create({
+        product,
+        quantity: item.quantity,
+        price: product.price,
+      });
+
+      orderItems.push(orderItem);
+    }
+    // -----> create order 
+
     const order = this.ordersRepository.create({
-      productId: dto.productId,
-      total: dto.total,
       user: {
         id: userId,
       },
+      total,
     });
-    return await this.ordersRepository.save(order);
+    console.log(orderItems);
+    // const saveOrder = this.ordersRepository.save(order);
+    for (const i of orderItems) {
+      console.log(i);
+    }
+    // await this.orderItemRepository.save(orderItems);
   }
 
   async update(

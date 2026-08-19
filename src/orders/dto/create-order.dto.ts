@@ -1,10 +1,22 @@
-import { IsNumber, Min } from 'class-validator';
+import { Type } from 'class-transformer';
+import { IsArray, IsInt, IsNotEmpty, IsNumber, Min, ValidateNested } from 'class-validator';
 
-export class CreateOrderDto {
-  @IsNumber()
+export class CreateOrderItemDto {
+  @IsNotEmpty()
+  @IsInt()
+  @Min(1)
   productId: number;
 
-  @IsNumber()
+  @IsNotEmpty()
+  @IsInt()
   @Min(1)
-  total: number;
+  quantity: number;
+}
+
+export class CreateOrderDto {
+  @IsNotEmpty()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => CreateOrderItemDto)
+  items: CreateOrderItemDto[];
 }

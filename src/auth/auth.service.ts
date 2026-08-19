@@ -21,6 +21,17 @@ export class AuthService {
     private readonly jwtService: JwtService,
   ) {}
 
+  // eslint-disable-next-line @typescript-eslint/require-await
+  async generateJwt(user: User) {
+    const payload = {
+      sub: user.id,
+      email: user.email,
+      role: user.role,
+    };
+
+    return this.jwtService.sign(payload);
+  }
+
   async register(dto: RegisterDto) {
     const findByEmail = await this.usersRepository.findBy({ email: dto.email });
     if (findByEmail.length > 0) {
@@ -54,14 +65,9 @@ export class AuthService {
     if (!isValidPassword) {
       throw new NotFoundException('Invalid username or password.');
     }
-    const payload = {
-      sub: findByEmail.id,
-      email: findByEmail.email,
-      role: findByEmail.role,
-    };
+    const token = await this.generateJwt(findByEmail);
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { password, age, role, ...user } = findByEmail;
-    const token = this.jwtService.sign(payload);
 
     return {
       user,
@@ -79,5 +85,35 @@ export class AuthService {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { password, ...profile } = userProfile[0];
     return profile;
+  }
+
+  async validateGoogleUser(profile: any) {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    const email = profile.emails?.[0]?.value;
+
+    if (!email) {
+      throw new Error('Google account does not have an email');
+    }
+
+    let user = await this.usersRepository.findOne({
+      where: { email },
+    });
+
+    if (!user) {
+      user = this.usersRepository.create({
+        name: profile.displayName,
+        email
+      });
+
+      user = await this.usersRepository.save(user);
+    }
+    const token = await this.generateJwt(user);
+
+    const { password, age, role, ...result } = user;
+
+    return {
+      result,
+      token,
+    };
   }
 }

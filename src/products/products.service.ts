@@ -73,7 +73,7 @@ export class ProductsService {
   }
 
   // DELETE /products/:id — delete a product, only if the requester owns it
-  async remove(id: number, userId: number): Promise<void> {
+  async remove(id: number): Promise<void> {
     const product = await this.productsRepository.findOne({
       where: { id },
       relations: { user: true },
@@ -81,10 +81,6 @@ export class ProductsService {
     if (!product) {
       throw new NotFoundException('Product not found.');
     }
-    if (product.user.id !== userId) {
-      throw new ForbiddenException('You can only delete your own products.');
-    }
     await this.productsRepository.delete(id);
   }
 }
-

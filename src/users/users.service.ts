@@ -9,6 +9,8 @@ import { Repository } from 'typeorm';
 import { User } from './entities/user.entity';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { AllUsersResponseDto } from './dto/user-response.dto';
+import { plainToInstance } from 'class-transformer';
 
 @Injectable()
 export class UsersService {
@@ -31,11 +33,11 @@ export class UsersService {
     return await this.usersRepository.save(user);
   }
 
-  async findAll() {
+  async findAll(): Promise<AllUsersResponseDto[]> {
     const users = await this.usersRepository.find();
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const result = users.map(({ password, ...user }) => user);
-    return result;
+    return plainToInstance(AllUsersResponseDto, users, {
+      excludeExtraneousValues: true,
+    });
   }
 
   async findOne(id) {

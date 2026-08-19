@@ -51,14 +51,10 @@ export class ProductsController {
   // DELETE /products/:id — only the owner can delete
   @Delete(':id')
   @SuccessMessage('Delete product successfully.')
-  remove(
-    @Param('id', ParseIntPipe) id: number,
-    @CurrentUser() user: any,
-  ) {
+  remove(@Param('id', ParseIntPipe) id: number, @CurrentUser() user: any) {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
-    const userId = user.userId;
     // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-    return this.productsService.remove(id, userId);
+    return this.productsService.remove(id);
   }
 }
 
