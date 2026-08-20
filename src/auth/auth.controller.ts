@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, Post, Req, UseGuards } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { RegisterDto } from './dto/register.dto';
 import { SuccessMessage } from 'src/common/decorators/success-message.decorator';
@@ -7,10 +7,16 @@ import { CurrentUser } from './decorator/current-user.decorator';
 import { JWTAuthGuard } from './guards/jwt-auth.guard';
 import { Public } from 'src/common/decorators/public.decorator';
 import { GoogleAuthGuard } from './guards/google-auth.guard';
+import { TwoFactorService } from 'src/two-factor/two-factor.service';
+import { User } from 'src/users/entities/user.entity';
+import { VerifyTwoFactorDto } from 'src/two-factor/dto/verify-two-factor.dto';
 
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly authService: AuthService) {}
+  constructor(
+    private readonly authService: AuthService,
+    private readonly towFactorService: TwoFactorService
+  ) {}
   @Public() // make route to can public access
   @Post('register')
   @SuccessMessage('Register successfully.')
@@ -19,6 +25,7 @@ export class AuthController {
   }
 
   @Post('login')
+  @HttpCode(200)
   @Public() // make route to can public access
   @SuccessMessage('Login Successfully.')
   login(@Body() dto: LoginDto) {
@@ -46,5 +53,16 @@ export class AuthController {
   async googleCallback(@Req() req: any) {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-member-access
     return req.user;
+  }
+
+  // ----------> Google Authenticator
+  @Post('2fa/setup')
+  setup(@CurrentUser() user: any) {
+    return this.towFactorService.generateSetup(user.userId);
+  }
+
+  @Post('2fa/verify-setup')
+  verifySetup(@CurrentUser() user: any, @Body() dto: VerifyTwoFactorDto) {
+    return this.towFactorService.verifySetup(user.userId, dto.code);
   }
 }

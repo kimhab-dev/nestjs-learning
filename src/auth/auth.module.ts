@@ -9,10 +9,12 @@ import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
 import { PassportModule } from '@nestjs/passport';
 import { GoogleStrategy } from './strategies/google.strategy';
+import { TwoFactorModule } from 'src/two-factor/two-factor.module';
 
 @Module({
   imports: [
     PassportModule,
+    TwoFactorModule,
     TypeOrmModule.forFeature([User]),
     JwtModule.registerAsync({
       imports: [ConfigModule],

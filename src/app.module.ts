@@ -17,6 +17,7 @@ import { OrdersModule } from './orders/orders.module';
 import { AuthModule } from './auth/auth.module';
 import { ConfigModule } from '@nestjs/config';
 import { TelegramModule } from './telegram/telegram.module';
+import { TwoFactorModule } from './two-factor/two-factor.module';
 
 @Module({
   imports: [
@@ -40,6 +41,7 @@ import { TelegramModule } from './telegram/telegram.module';
     OrdersModule,
     UsersModule,
     TelegramModule,
+    TwoFactorModule,
   ],
   controllers: [AppController], // register controller
   providers: [

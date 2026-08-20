@@ -32,6 +32,18 @@ export class AuthService {
     return this.jwtService.sign(payload);
   }
 
+  private generateTwoFactorToken(user: User) {
+    return this.jwtService.sign(
+      {
+        sub: user.id,
+        type: '2fa_pending',
+      },
+      {
+        expiresIn: '5m',
+      },
+    );
+  }
+
   async register(dto: RegisterDto) {
     const findByEmail = await this.usersRepository.findBy({ email: dto.email });
     if (findByEmail.length > 0) {
@@ -64,6 +76,17 @@ export class AuthService {
     );
     if (!isValidPassword) {
       throw new NotFoundException('Invalid username or password.');
+    }
+
+    console.log(findByEmail.twoFactorEnabled);
+    // Check 2FA
+    if (findByEmail.twoFactorEnabled) {
+      const tempToken = this.generateTwoFactorToken(findByEmail);
+
+      return {
+        requiresTwoFactor: true,
+        tempToken,
+      };
     }
     const token = await this.generateJwt(findByEmail);
     // eslint-disable-next-line @typescript-eslint/no-unused-vars

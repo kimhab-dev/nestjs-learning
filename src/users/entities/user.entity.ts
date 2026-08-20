@@ -29,6 +29,15 @@ export class User extends BaseEntity {
   })
   role: Role;
 
+  @Column({ default: false })
+  twoFactorEnabled: boolean;
+
+  @Column({ type: 'varchar', nullable: true })
+  twoFactorSecret: string | null;
+
+  @Column({ type: 'varchar', nullable: true })
+  twoFactorPendingSecret: string | null;
+
   // () => Order : is relationship tv kan Order
   @OneToMany(() => Order, (order) => order.user)
   orders: Order[];
