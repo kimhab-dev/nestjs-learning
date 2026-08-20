@@ -8,9 +8,6 @@ export class Order extends BaseEntity {
   @Column()
   total: number;
 
-  @Column()
-  totalPrice: number;
-
   @ManyToOne(() => User, {
     nullable: true,
     onDelete: 'SET NULL',

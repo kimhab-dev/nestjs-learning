@@ -16,6 +16,7 @@ import { ProductsModule } from './products/products.module';
 import { OrdersModule } from './orders/orders.module';
 import { AuthModule } from './auth/auth.module';
 import { ConfigModule } from '@nestjs/config';
+import { TelegramModule } from './telegram/telegram.module';
 
 @Module({
   imports: [
@@ -38,6 +39,7 @@ import { ConfigModule } from '@nestjs/config';
     ProductsModule,
     OrdersModule,
     UsersModule,
+    TelegramModule,
   ],
   controllers: [AppController], // register controller
   providers: [

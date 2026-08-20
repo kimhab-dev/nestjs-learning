@@ -18,3 +18,14 @@ export class OrderResponseDto {
   @Type(() => UsersResponseDto)
   user: UsersResponseDto | null;
 }
+
+export class OrderItemResponseDto {
+  @Expose()
+  id: number;
+
+  @Expose()
+  name: string;
+
+  @Expose()
+  price: string;
+}

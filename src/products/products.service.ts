@@ -10,6 +10,7 @@ import { CreateProductDto } from './dto/create-product.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ProductResponseDto } from './dto/response-product.dto';
 import { plainToInstance } from 'class-transformer';
+import { UpdateProductDto } from './dto/update-product.dto';
 
 @Injectable()
 export class ProductsService {
@@ -70,6 +71,20 @@ export class ProductsService {
     return plainToInstance(ProductResponseDto, products, {
       excludeExtraneousValues: true,
     });
+  }
+
+  async updateProduct(productId: number, dto: UpdateProductDto) {
+    const isProduct = await this.productsRepository.findOne({
+      where: {
+        id: productId,
+      },
+    });
+
+    if (!isProduct) {
+      throw new NotFoundException('Product not found.');
+    }
+    Object.assign(isProduct, dto);
+    return this.productsRepository.save(isProduct);
   }
 
   // DELETE /products/:id — delete a product, only if the requester owns it

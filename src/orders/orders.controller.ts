@@ -35,7 +35,7 @@ export class OrdersController {
   }
 
   @Post()
-  @SuccessMessage('Create product successfully.')
+  @SuccessMessage('Order product successfully.')
   create(@CurrentUser() user: any, @Body() dto: CreateOrderDto) {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
     const userId = user.userId;

@@ -3,12 +3,13 @@ import { CreateOrderDto } from './dto/create-order.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Order } from './entities/order-entitie';
 import { Repository } from 'typeorm';
-import { OrderResponseDto } from './dto/order-response.dto';
+import { OrderItemResponseDto, OrderResponseDto } from './dto/order-response.dto';
 import { UpdateOrderDto } from './dto/update-order.dto';
 import { GetOrdersDto } from './dto/get-orders.dto';
 import { plainToInstance } from 'class-transformer';
 import { Product } from 'src/products/entities/product-entities';
 import { OrderItems } from './entities/order-item.entities';
+import { TelegramService } from 'src/telegram/telegram.service';
 
 @Injectable()
 export class OrdersService {
@@ -19,6 +20,7 @@ export class OrdersService {
     private readonly orderItemRepository: Repository<OrderItems>,
     @InjectRepository(Product)
     private readonly productRepository: Repository<Product>,
+    private readonly telegramService: TelegramService,
   ) {}
   async findAll(): Promise<OrderResponseDto[]> {
     const orders = await this.ordersRepository.find({
@@ -100,8 +102,10 @@ export class OrdersService {
     };
   }
 
-  async create(dto: CreateOrderDto, userId: number) {
-
+  async create(
+    dto: CreateOrderDto,
+    userId: number,
+  ): Promise<OrderItemResponseDto[]> {
     let total = 0;
     const orderItems: OrderItems[] = [];
     for (const item of dto.items) {
@@ -136,7 +140,7 @@ export class OrdersService {
 
       orderItems.push(orderItem);
     }
-    // -----> create order 
+    // -----> create order
 
     const order = this.ordersRepository.create({
       user: {
@@ -144,12 +148,20 @@ export class OrdersService {
       },
       total,
     });
-    console.log(orderItems);
-    // const saveOrder = this.ordersRepository.save(order);
-    for (const i of orderItems) {
-      console.log(i);
+
+    const savedOrder = await this.ordersRepository.save(order);
+    for (const orderItem of orderItems) {
+      orderItem.order = savedOrder;
     }
-    // await this.orderItemRepository.save(orderItems);
+    let headerMessage = `🛒 New Order #${savedOrder.id}`;
+    for (const i of orderItems) {
+      headerMessage += `Produuct ID : ${i.order}`;
+    }
+    await this.telegramService.sendMessage(headerMessage);
+    const resOrderItems = await this.orderItemRepository.save(orderItems);
+    return plainToInstance(OrderItemResponseDto, resOrderItems, {
+      excludeExtraneousValues: true,
+    });
   }
 
   async update(

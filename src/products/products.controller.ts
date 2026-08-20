@@ -5,12 +5,14 @@ import {
   Get,
   Param,
   ParseIntPipe,
+  Patch,
   Post,
 } from '@nestjs/common';
 import { ProductsService } from './products.service';
 import { CreateProductDto } from './dto/create-product.dto';
 import { SuccessMessage } from 'src/common/decorators/success-message.decorator';
 import { CurrentUser } from 'src/auth/decorator/current-user.decorator';
+import { UpdateProductDto } from './dto/update-product.dto';
 
 @Controller('products')
 export class ProductsController {
@@ -46,6 +48,15 @@ export class ProductsController {
   @SuccessMessage('Get product successfully.')
   findById(@Param('id', ParseIntPipe) id: number) {
     return this.productsService.findById(id);
+  }
+
+  @Patch(':id')
+  @SuccessMessage('Update product successfully.')
+  patchProduct(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: UpdateProductDto,
+  ) {
+    return this.productsService.updateProduct(id, dto);
   }
 
   // DELETE /products/:id — only the owner can delete
