@@ -2,7 +2,7 @@ import { BadRequestException, Injectable, NotFoundException } from '@nestjs/comm
 import { CreateOrderDto } from './dto/create-order.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Order } from './entities/order-entitie';
-import { Repository } from 'typeorm';
+import { DataSource, Repository } from 'typeorm';
 import { OrderItemResponseDto, OrderResponseDto } from './dto/order-response.dto';
 import { UpdateOrderDto } from './dto/update-order.dto';
 import { GetOrdersDto } from './dto/get-orders.dto';
@@ -21,6 +21,7 @@ export class OrdersService {
     @InjectRepository(Product)
     private readonly productRepository: Repository<Product>,
     private readonly telegramService: TelegramService,
+    private readonly dataSource: DataSource,
   ) {}
   async findAll(): Promise<OrderResponseDto[]> {
     const orders = await this.ordersRepository.find({
@@ -33,21 +34,27 @@ export class OrdersService {
     });
   }
 
-  async findOne(id: number, userId: number): Promise<OrderResponseDto> {
+  async findOne(id: Order, userId: number): Promise<OrderResponseDto> {
     const order = await this.ordersRepository.findOne({
       where: {
-        id,
+        items: {
+          order: id,
+        },
         user: {
           id: userId,
         },
       },
       relations: {
+        items: {
+          product: true,
+        },
         user: true,
       },
     });
     if (!order) {
       throw new NotFoundException('Order not found or not your order.');
     }
+    console.dir(order, { depth: null });
     return plainToInstance(OrderResponseDto, order, {
       excludeExtraneousValues: true,
     });
@@ -106,61 +113,70 @@ export class OrdersService {
     dto: CreateOrderDto,
     userId: number,
   ): Promise<OrderItemResponseDto[]> {
-    let total = 0;
-    const orderItems: OrderItems[] = [];
-    for (const item of dto.items) {
-      const product = await this.productRepository.findOne({
-        where: {
-          id: item.productId,
-        },
-      });
-      if (!product) {
-        throw new NotFoundException(`Product ${item.productId} not found`);
-      }
-      if (product.stock < item.quantity) {
-        throw new BadRequestException(
-          `Not enough stock for ${product.name}. Available: ${product.stock}`,
+    // Use a transaction so stock deductions and order creation are atomic.
+    // If anything fails mid-loop, all DB changes are rolled back automatically.
+    return this.dataSource.transaction(async (manager) => {
+      let total = 0;
+      const orderItems: OrderItems[] = [];
+
+      for (const item of dto.items) {
+        const product = await manager.findOne(Product, {
+          where: { id: item.productId },
+        });
+        if (!product) {
+          throw new NotFoundException(`Product ${item.productId} not found`);
+        }
+        if (product.stock < item.quantity) {
+          throw new BadRequestException(
+            `Not enough stock for ${product.name}. Available: ${product.stock}`,
+          );
+        }
+
+        // ----->total price
+        const subtotal = Number(product.price) * item.quantity;
+        total += subtotal;
+
+        // ----->decrement stock atomically
+        await manager.decrement(
+          Product,
+          { id: product.id },
+          'stock',
+          item.quantity,
         );
+
+        // ----->prepare order item (not saved yet)
+        const orderItem = manager.create(OrderItems, {
+          product,
+          quantity: item.quantity,
+          price: product.price,
+        });
+        orderItems.push(orderItem);
       }
 
-      // -----> total price
-      const subtotal = Number(product.price) * item.quantity;
-      total += subtotal;
-
-      // -----> increas and save new stock
-      product.stock -= item.quantity;
-      await this.productRepository.save(product);
-
-      // -----> create order Item
-      const orderItem = this.orderItemRepository.create({
-        product,
-        quantity: item.quantity,
-        price: product.price,
+      // ----->create and save order
+      const order = manager.create(Order, {
+        user: { id: userId },
+        total,
       });
+      const savedOrder = await manager.save(Order, order);
 
-      orderItems.push(orderItem);
-    }
-    // -----> create order
+      // ----->link order items to the saved order and save them
+      for (const orderItem of orderItems) {
+        orderItem.order = savedOrder;
+      }
+      const resOrderItems = await manager.save(OrderItems, orderItems);
 
-    const order = this.ordersRepository.create({
-      user: {
-        id: userId,
-      },
-      total,
-    });
+      // ----->send Telegram notification
+      let headerMessage = `🛒 New Order #${savedOrder.id}\n`;
+      for (const item of resOrderItems) {
+        headerMessage += `• ${item.product.name} x${item.quantity} @ $${item.price}\n`;
+      }
+      headerMessage += `Total: $${total}`;
+      await this.telegramService.sendMessage(headerMessage);
 
-    const savedOrder = await this.ordersRepository.save(order);
-    for (const orderItem of orderItems) {
-      orderItem.order = savedOrder;
-    }
-    let headerMessage = `🛒 New Order #${savedOrder.id}`;
-    for (const i of orderItems) {
-      headerMessage += `Produuct ID : ${i.order}`;
-    }
-    await this.telegramService.sendMessage(headerMessage);
-    const resOrderItems = await this.orderItemRepository.save(orderItems);
-    return plainToInstance(OrderItemResponseDto, resOrderItems, {
-      excludeExtraneousValues: true,
+      return plainToInstance(OrderItemResponseDto, resOrderItems, {
+        excludeExtraneousValues: true,
+      });
     });
   }
 

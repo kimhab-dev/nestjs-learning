@@ -11,6 +11,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { ProductResponseDto } from './dto/response-product.dto';
 import { plainToInstance } from 'class-transformer';
 import { UpdateProductDto } from './dto/update-product.dto';
+import { AddStockDto } from './dto/add-stock.dto';
 
 @Injectable()
 export class ProductsService {
@@ -85,6 +86,31 @@ export class ProductsService {
     }
     Object.assign(isProduct, dto);
     return this.productsRepository.save(isProduct);
+  }
+
+  async addStock(
+    productId: number,
+    dto: AddStockDto,
+  ): Promise<ProductResponseDto> {
+    const product = await this.productsRepository.findOne({
+      where: { id: productId },
+      relations: { user: true },
+    });
+    if (!product) {
+      throw new NotFoundException('Product not found.');
+    }
+    await this.productsRepository.increment(
+      { id: productId },
+      'stock',
+      dto.quantity,
+    );
+    const updated = await this.productsRepository.findOne({
+      where: { id: productId },
+      relations: { user: true },
+    });
+    return plainToInstance(ProductResponseDto, updated, {
+      excludeExtraneousValues: true,
+    });
   }
 
   // DELETE /products/:id — delete a product, only if the requester owns it

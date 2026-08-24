@@ -8,6 +8,7 @@ import { Roles } from 'src/auth/decorator/roles.decorator';
 import { Role } from 'src/users/enums/role.enum';
 import { UpdateOrderDto } from './dto/update-order.dto';
 import { GetOrdersDto } from './dto/get-orders.dto';
+import { Order } from './entities/order-entitie';
 
 @Controller('orders')
 export class OrdersController {
@@ -28,7 +29,7 @@ export class OrdersController {
 
   @Get(':id')
   @SuccessMessage('Get a order successfully.')
-  findOne(@Param('id', ParseIntPipe) id: number, @CurrentUser() user: any) {
+  findOne(@Param('id', ParseIntPipe) id: Order, @CurrentUser() user: any) {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
     const userId = user.userId;
     return this.ordersService.findOne(id, userId);

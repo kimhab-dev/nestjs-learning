@@ -2,6 +2,7 @@ import {
   ConflictException,
   Injectable,
   NotFoundException,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -12,6 +13,8 @@ import { JwtService } from '@nestjs/jwt';
 import { User } from 'src/users/entities/user.entity';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
+import { VerifyTwoFactorDto } from 'src/two-factor/dto/verify-two-factor.dto';
+import { verify } from 'otplib';
 
 @Injectable()
 export class AuthService {
@@ -27,8 +30,8 @@ export class AuthService {
       sub: user.id,
       email: user.email,
       role: user.role,
+      type: 'access',
     };
-
     return this.jwtService.sign(payload);
   }
 
@@ -67,7 +70,7 @@ export class AuthService {
     const [findByEmail] = await this.usersRepository.findBy({
       email: dto.email,
     });
-    if (!findByEmail) {
+    if (!findByEmail || !findByEmail.password) {
       throw new NotFoundException('Invalid username or password.');
     }
     const isValidPassword = await bcrypt.compare(
@@ -78,7 +81,6 @@ export class AuthService {
       throw new NotFoundException('Invalid username or password.');
     }
 
-    console.log(findByEmail.twoFactorEnabled);
     // Check 2FA
     if (findByEmail.twoFactorEnabled) {
       const tempToken = this.generateTwoFactorToken(findByEmail);
@@ -106,7 +108,7 @@ export class AuthService {
       },
     });
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { password, ...profile } = userProfile[0];
+    const { password, twoFactorPendingSecret, twoFactorSecret, ...profile } = userProfile[0];
     return profile;
   }
 
@@ -130,8 +132,62 @@ export class AuthService {
 
       user = await this.usersRepository.save(user);
     }
+    // Check 2FA
+    if (user.twoFactorEnabled) {
+      const tempToken = this.generateTwoFactorToken(user);
+
+      return {
+        requiresTwoFactor: true,
+        tempToken,
+      };
+    }
     const token = await this.generateJwt(user);
 
+    const { password, age, role, ...result } = user;
+
+    return {
+      result,
+      token,
+    };
+  }
+
+  async verifyLogin2fa(dto: VerifyTwoFactorDto) {
+    let payload: any;
+
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+      payload = this.jwtService.verify(dto.tempToken);
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    } catch (error) {
+      throw new UnauthorizedException('Invalid or expired two-factor token.');
+    }
+
+    if (payload.type !== '2fa_pending') {
+      throw new UnauthorizedException('Invalid @FA token');
+    }
+
+    const user = await this.usersRepository.findOne({
+      where: {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+        id: payload.sub
+      },
+    });
+    if (!user) {
+      throw new UnauthorizedException('User not found.');
+    }
+    if (!user.twoFactorEnabled || !user.twoFactorSecret) {
+      throw new UnauthorizedException(
+        'Two-factor authentication is not enabled.',
+      );
+    }
+    const isValid = await verify({
+      secret: user.twoFactorSecret,
+      token: dto.code,
+    });
+    if (!isValid.valid) {
+      throw new UnauthorizedException('Invalid authenticator code.');
+    }
+    const token = await this.generateJwt(user);
     const { password, age, role, ...result } = user;
 
     return {

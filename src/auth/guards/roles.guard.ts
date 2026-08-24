@@ -4,6 +4,7 @@ import { Reflector } from '@nestjs/core';
 
 import { Role } from '../../users/enums/role.enum';
 import { ROLES_KEY } from '../decorator/roles.decorator';
+import { IS_PUBLIC_KEY } from '../../common/decorators/public.decorator';
 
 @Injectable()
 // impements CanActivate mean the class must have method CanActivate
@@ -12,6 +13,15 @@ export class RolesGuard implements CanActivate {
 
   // context: ExecutionContext - it's have data in current request
   canActivate(context: ExecutionContext): boolean {
+    // If the route is marked @Public(), skip role enforcement entirely
+    const isPublic = this.reflector.getAllAndOverride<boolean>(IS_PUBLIC_KEY, [
+      context.getHandler(),
+      context.getClass(),
+    ]);
+    if (isPublic) {
+      return true;
+    }
+
     const requiredRoles = this.reflector.getAllAndOverride<Role[]>(ROLES_KEY, [
       context.getHandler(),
       context.getClass(),

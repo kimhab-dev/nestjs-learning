@@ -18,6 +18,7 @@ import { AuthModule } from './auth/auth.module';
 import { ConfigModule } from '@nestjs/config';
 import { TelegramModule } from './telegram/telegram.module';
 import { TwoFactorModule } from './two-factor/two-factor.module';
+import { ChatGateway } from './chat/chat.gateway';
 
 @Module({
   imports: [
@@ -50,6 +51,7 @@ import { TwoFactorModule } from './two-factor/two-factor.module';
       provide: APP_GUARD, // register guaed to global for not write @UserGuard() any ware
       useClass: JWTAuthGuard, // class for
     },
+    ChatGateway,
   ],
   // register service
 })

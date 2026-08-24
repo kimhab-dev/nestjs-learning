@@ -61,8 +61,11 @@ export class AuthController {
     return this.towFactorService.generateSetup(user.userId);
   }
 
-  @Post('2fa/verify-setup')
-  verifySetup(@CurrentUser() user: any, @Body() dto: VerifyTwoFactorDto) {
-    return this.towFactorService.verifySetup(user.userId, dto.code);
+  @Public()
+  @Post('2fa/verify')
+  @SuccessMessage('Login successfully.')
+  verifySetup(@Body() dto: VerifyTwoFactorDto) {
+    console.log(dto);
+    return this.authService.verifyLogin2fa(dto);
   }
 }
