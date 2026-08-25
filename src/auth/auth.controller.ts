@@ -12,6 +12,7 @@ import { User } from 'src/users/entities/user.entity';
 import { VerifyTwoFactorDto } from 'src/two-factor/dto/verify-two-factor.dto';
 import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
+import { VerifyEmailDto } from './dto/verify-email.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -21,7 +22,9 @@ export class AuthController {
   ) {}
   @Public() // make route to can public access
   @Post('register')
-  @SuccessMessage('Register successfully.')
+  @SuccessMessage(
+    'Registration successful. Please check your email to verify your account.',
+  )
   register(@Body() dto: RegisterDto) {
     return this.authService.register(dto);
   }
@@ -83,5 +86,21 @@ export class AuthController {
   @Post('reset-password')
   resetPassword(@Body() dto: ResetPasswordDto) {
     return this.authService.resetPassword(dto);
+  }
+
+  @Public()
+  @Post('verify-email')
+  @HttpCode(200)
+  @SuccessMessage('Email verified successfully.')
+  verifyEmail(@Body() dto: VerifyEmailDto) {
+    return this.authService.verifyEmail(dto);
+  }
+
+  @Public()
+  @Post('resend-verification-email')
+  @HttpCode(200)
+  @SuccessMessage('Verification email sent successfully.')
+  resendVerificationEmail(@Body() dto: ForgotPasswordDto) {
+    return this.authService.resendVerificationEmail(dto.email);
   }
 }

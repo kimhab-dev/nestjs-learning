@@ -20,8 +20,10 @@ import { verify } from 'otplib';
 import { MailService } from 'src/mail/mail.service';
 import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import { ResetPasswordToken } from 'src/reset-password-token/reset-password-token.entity';
+import { EmailVerificationToken } from 'src/email-verification-token/email-verification-token.entity';
 import { ConfigService } from '@nestjs/config';
 import { ResetPasswordDto } from './dto/reset-password.dto';
+import { VerifyEmailDto } from './dto/verify-email.dto';
 
 @Injectable()
 export class AuthService {
@@ -30,6 +32,8 @@ export class AuthService {
     private readonly usersRepository: Repository<User>,
     @InjectRepository(ResetPasswordToken)
     private readonly resetpPasswordToken: Repository<ResetPasswordToken>,
+    @InjectRepository(EmailVerificationToken)
+    private readonly emailVerificationTokenRepository: Repository<EmailVerificationToken>,
     private readonly jwtService: JwtService,
     private readonly mailService: MailService,
     private readonly configService: ConfigService,
@@ -70,8 +74,31 @@ export class AuthService {
       name: dto.name,
       email: dto.email,
       password: hashPassword,
+      isVerified: false,
     });
     const saveUser = await this.usersRepository.save(user);
+
+    // Create verification token (expires in 24 hours)
+    const verificationToken = randomBytes(32).toString('hex');
+    const verificationExpires = new Date(Date.now() + 24 * 60 * 60 * 1000);
+
+    const emailTokenRecord = this.emailVerificationTokenRepository.create({
+      token: verificationToken,
+      expires: verificationExpires,
+      isUsed: false,
+      user: saveUser,
+    });
+    await this.emailVerificationTokenRepository.save(emailTokenRecord);
+
+    const frontendUrl =
+      this.configService.get<string>('FRONTEND_URL') || 'http://localhost:3000';
+    const verificationLink = `${frontendUrl}/verify-email?token=${verificationToken}`;
+
+    await this.mailService.sendVerificationEmail(
+      saveUser.email,
+      verificationLink,
+    );
+
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { password, age, role, ...result } = saveUser;
     return result;
@@ -90,6 +117,13 @@ export class AuthService {
     );
     if (!isValidPassword) {
       throw new NotFoundException('Invalid username or password.');
+    }
+
+    // Check if email is verified
+    if (!findByEmail.isVerified) {
+      throw new UnauthorizedException(
+        'Please verify your email before logging in.',
+      );
     }
 
     // Check 2FA
@@ -138,7 +172,8 @@ export class AuthService {
     if (!user) {
       user = this.usersRepository.create({
         name: profile.displayName,
-        email
+        email,
+        isVerified: true,
       });
 
       user = await this.usersRepository.save(user);
@@ -272,5 +307,85 @@ export class AuthService {
         id: user.id,
       },
     });
+  }
+
+  // -----> email verification
+  async verifyEmail(dto: VerifyEmailDto) {
+    const emailToken = await this.emailVerificationTokenRepository.findOne({
+      where: {
+        token: dto.token,
+      },
+      relations: {
+        user: true,
+      },
+    });
+
+    if (!emailToken) {
+      throw new BadRequestException('Invalid verification token');
+    }
+
+    if (
+      emailToken.isUsed ||
+      (emailToken.expires && emailToken.expires < new Date())
+    ) {
+      throw new BadRequestException(
+        'Verification token has expired or has already been used',
+      );
+    }
+
+    const user = emailToken.user;
+    user.isVerified = true;
+    await this.usersRepository.save(user);
+
+    await this.emailVerificationTokenRepository.delete({
+      user: {
+        id: user.id,
+      },
+    });
+
+    return {
+      details: 'Email verified successfully. You can now login.',
+    };
+  }
+
+  async resendVerificationEmail(email: string) {
+    const user = await this.usersRepository.findOne({
+      where: { email },
+    });
+
+    const message =
+      'If the email is registered and unverified, a verification link has been sent.';
+
+    if (!user) {
+      return { message };
+    }
+
+    if (user.isVerified) {
+      throw new BadRequestException('Email is already verified.');
+    }
+
+    // Delete old verification tokens for this user
+    await this.emailVerificationTokenRepository.delete({
+      user: {
+        id: user.id,
+      },
+    });
+
+    const verificationToken = randomBytes(32).toString('hex');
+    const verificationExpires = new Date(Date.now() + 24 * 60 * 60 * 1000);
+
+    const emailTokenRecord = this.emailVerificationTokenRepository.create({
+      token: verificationToken,
+      expires: verificationExpires,
+      isUsed: false,
+      user,
+    });
+    await this.emailVerificationTokenRepository.save(emailTokenRecord);
+
+    const frontendUrl =
+      this.configService.get<string>('FRONTEND_URL') || 'http://localhost:3000';
+    const verificationLink = `${frontendUrl}/verify-email?token=${verificationToken}`;
+
+    await this.mailService.sendVerificationEmail(user.email, verificationLink);
   }
 }
