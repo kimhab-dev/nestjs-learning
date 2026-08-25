@@ -153,7 +153,8 @@ export class AuthService {
       },
     });
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { password, twoFactorPendingSecret, twoFactorSecret, ...profile } = userProfile[0];
+    const { password, twoFactorPendingSecret, twoFactorSecret, ...profile } =
+      userProfile[0];
     return profile;
   }
 
@@ -215,7 +216,7 @@ export class AuthService {
     const user = await this.usersRepository.findOne({
       where: {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-        id: payload.sub
+        id: payload.sub,
       },
     });
     if (!user) {

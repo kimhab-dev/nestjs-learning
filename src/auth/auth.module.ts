@@ -20,7 +20,11 @@ import { MailModule } from 'src/mail/mail.module';
     TwoFactorModule,
     ConfigModule,
     MailModule,
-    TypeOrmModule.forFeature([User, ResetPasswordToken, EmailVerificationToken]),
+    TypeOrmModule.forFeature([
+      User,
+      ResetPasswordToken,
+      EmailVerificationToken,
+    ]),
     JwtModule.registerAsync({
       imports: [ConfigModule],
       inject: [ConfigService],

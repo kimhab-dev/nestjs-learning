@@ -1,4 +1,12 @@
-import { Body, Controller, Get, HttpCode, Post, Req, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  HttpCode,
+  Post,
+  Req,
+  UseGuards,
+} from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { RegisterDto } from './dto/register.dto';
 import { SuccessMessage } from 'src/common/decorators/success-message.decorator';
@@ -18,7 +26,7 @@ import { VerifyEmailDto } from './dto/verify-email.dto';
 export class AuthController {
   constructor(
     private readonly authService: AuthService,
-    private readonly towFactorService: TwoFactorService
+    private readonly towFactorService: TwoFactorService,
   ) {}
   @Public() // make route to can public access
   @Post('register')

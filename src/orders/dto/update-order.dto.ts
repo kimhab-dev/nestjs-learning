@@ -1,12 +1,12 @@
-import { IsNumber, IsOptional, Min } from "class-validator";
+import { IsNumber, IsOptional, Min } from 'class-validator';
 
 export class UpdateOrderDto {
-    @IsOptional()
-    @IsNumber()
-    productId?: number;
+  @IsOptional()
+  @IsNumber()
+  productId?: number;
 
-    @IsOptional()
-    @IsNumber()
-    @Min(1)
-    total?: number;
+  @IsOptional()
+  @IsNumber()
+  @Min(1)
+  total?: number;
 }

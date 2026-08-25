@@ -1,6 +1,5 @@
 import {
   ConflictException,
-  ForbiddenException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -12,6 +11,10 @@ import { ProductResponseDto } from './dto/response-product.dto';
 import { plainToInstance } from 'class-transformer';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { AddStockDto } from './dto/add-stock.dto';
+import {
+  getRelativeFilePath,
+  removeUploadedFile,
+} from 'src/common/helpers/file-upload.helper';
 
 @Injectable()
 export class ProductsService {
@@ -20,18 +23,29 @@ export class ProductsService {
     private readonly productsRepository: Repository<Product>,
   ) {}
 
-  async create(dto: CreateProductDto, userId: number): Promise<ProductResponseDto> {
+  async create(
+    dto: CreateProductDto,
+    userId: number,
+    file?: Express.Multer.File,
+  ): Promise<ProductResponseDto> {
     const isProduct = await this.productsRepository.findOne({
       where: { name: dto.name },
     });
     if (isProduct) {
+      if (file) {
+        removeUploadedFile(file.path);
+      }
       throw new ConflictException('This product is already have.');
     }
+
+    const image = file ? getRelativeFilePath(file, 'products') : dto.image;
+
     const product = this.productsRepository.create({
       name: dto.name,
       price: dto.price,
       description: dto.description,
       stock: dto.stock,
+      image,
       user: { id: userId },
     });
     const saved = await this.productsRepository.save(product);
@@ -74,18 +88,47 @@ export class ProductsService {
     });
   }
 
-  async updateProduct(productId: number, dto: UpdateProductDto) {
-    const isProduct = await this.productsRepository.findOne({
+  async updateProduct(
+    productId: number,
+    dto: UpdateProductDto,
+    file?: Express.Multer.File,
+  ): Promise<ProductResponseDto> {
+    const product = await this.productsRepository.findOne({
       where: {
         id: productId,
       },
+      relations: { user: true },
     });
 
-    if (!isProduct) {
+    if (!product) {
+      if (file) {
+        removeUploadedFile(file.path);
+      }
       throw new NotFoundException('Product not found.');
     }
-    Object.assign(isProduct, dto);
-    return this.productsRepository.save(isProduct);
+
+    const oldImage = product.image;
+    let newImage = dto.image;
+
+    if (file) {
+      newImage = getRelativeFilePath(file, 'products');
+    }
+
+    Object.assign(product, {
+      ...dto,
+      ...(newImage !== undefined && { image: newImage }),
+    });
+
+    const saved = await this.productsRepository.save(product);
+
+    // If new image was uploaded and differed from old one, delete old file from disk
+    if (file && oldImage && oldImage !== newImage) {
+      removeUploadedFile(oldImage);
+    }
+
+    return plainToInstance(ProductResponseDto, saved, {
+      excludeExtraneousValues: true,
+    });
   }
 
   async addStock(
@@ -113,6 +156,34 @@ export class ProductsService {
     });
   }
 
+  async uploadProductImage(
+    productId: number,
+    file: Express.Multer.File,
+  ): Promise<ProductResponseDto> {
+    const product = await this.productsRepository.findOne({
+      where: { id: productId },
+      relations: { user: true },
+    });
+
+    if (!product) {
+      removeUploadedFile(file.path);
+      throw new NotFoundException('Product not found.');
+    }
+
+    const oldImage = product.image;
+    product.image = getRelativeFilePath(file, 'products');
+
+    const saved = await this.productsRepository.save(product);
+
+    if (oldImage && oldImage !== product.image) {
+      removeUploadedFile(oldImage);
+    }
+
+    return plainToInstance(ProductResponseDto, saved, {
+      excludeExtraneousValues: true,
+    });
+  }
+
   // DELETE /products/:id — delete a product, only if the requester owns it
   async remove(id: number): Promise<void> {
     const product = await this.productsRepository.findOne({
@@ -122,6 +193,11 @@ export class ProductsService {
     if (!product) {
       throw new NotFoundException('Product not found.');
     }
+
+    if (product.image) {
+      removeUploadedFile(product.image);
+    }
+
     await this.productsRepository.delete(id);
   }
 }

@@ -1,9 +1,16 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Order } from './entities/order-entitie';
 import { DataSource, Repository } from 'typeorm';
-import { OrderItemResponseDto, OrderResponseDto } from './dto/order-response.dto';
+import {
+  OrderItemResponseDto,
+  OrderResponseDto,
+} from './dto/order-response.dto';
 import { UpdateOrderDto } from './dto/update-order.dto';
 import { GetOrdersDto } from './dto/get-orders.dto';
 import { plainToInstance } from 'class-transformer';
@@ -95,7 +102,7 @@ export class OrdersService {
     // Pagination
     queryBuilder.skip(skip).take(limit);
 
-    const [orders, total] = await queryBuilder.getManyAndCount(); 
+    const [orders, total] = await queryBuilder.getManyAndCount();
     return {
       items: plainToInstance(OrderResponseDto, orders, {
         excludeExtraneousValues: true,
