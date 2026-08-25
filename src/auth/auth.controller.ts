@@ -10,6 +10,8 @@ import { GoogleAuthGuard } from './guards/google-auth.guard';
 import { TwoFactorService } from 'src/two-factor/two-factor.service';
 import { User } from 'src/users/entities/user.entity';
 import { VerifyTwoFactorDto } from 'src/two-factor/dto/verify-two-factor.dto';
+import { ForgotPasswordDto } from './dto/forgot-password.dto';
+import { ResetPasswordDto } from './dto/reset-password.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -67,5 +69,19 @@ export class AuthController {
   verifySetup(@Body() dto: VerifyTwoFactorDto) {
     console.log(dto);
     return this.authService.verifyLogin2fa(dto);
+  }
+
+  @Public()
+  @SuccessMessage('Send request forget password successfully.')
+  @Post('forgot-password-request')
+  forgotPassword(@Body() dto: ForgotPasswordDto) {
+    return this.authService.forgotPassword(dto);
+  }
+
+  @Public()
+  @SuccessMessage('Forget password successfully.')
+  @Post('reset-password')
+  resetPassword(@Body() dto: ResetPasswordDto) {
+    return this.authService.resetPassword(dto);
   }
 }

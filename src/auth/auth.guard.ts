@@ -13,10 +13,6 @@ export class AuthGuard implements CanActivate {
   ): boolean | Promise<boolean> | Observable<boolean> {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const request = context.switchToHttp().getRequest();
-    // console.log(request);
-    // console.log(request.method);
-    // console.log(request.url);
-    // console.log("Authorization", request.header.Authorization);
     const isPublic = this.reflector.get<boolean>(
       IS_PUBLIC_KEY,
       context.getHandler(), // mean calling method

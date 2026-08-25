@@ -19,13 +19,13 @@ import { ConfigModule } from '@nestjs/config';
 import { TelegramModule } from './telegram/telegram.module';
 import { TwoFactorModule } from './two-factor/two-factor.module';
 import { ChatGateway } from './chat/chat.gateway';
+import { MailModule } from './mail/mail.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
     }),
-
     TypeOrmModule.forRoot({
       type: 'mysql',
       host: process.env.DB_HOST,
@@ -43,6 +43,7 @@ import { ChatGateway } from './chat/chat.gateway';
     UsersModule,
     TelegramModule,
     TwoFactorModule,
+    MailModule,
   ],
   controllers: [AppController], // register controller
   providers: [

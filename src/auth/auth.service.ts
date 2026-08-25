@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   ConflictException,
   Injectable,
   NotFoundException,
@@ -9,19 +10,29 @@ import { Repository } from 'typeorm';
 
 import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
+import { randomBytes } from 'crypto';
 
 import { User } from 'src/users/entities/user.entity';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import { VerifyTwoFactorDto } from 'src/two-factor/dto/verify-two-factor.dto';
 import { verify } from 'otplib';
+import { MailService } from 'src/mail/mail.service';
+import { ForgotPasswordDto } from './dto/forgot-password.dto';
+import { ResetPasswordToken } from 'src/reset-password-token/reset-password-token.entity';
+import { ConfigService } from '@nestjs/config';
+import { ResetPasswordDto } from './dto/reset-password.dto';
 
 @Injectable()
 export class AuthService {
   constructor(
     @InjectRepository(User)
     private readonly usersRepository: Repository<User>,
+    @InjectRepository(ResetPasswordToken)
+    private readonly resetpPasswordToken: Repository<ResetPasswordToken>,
     private readonly jwtService: JwtService,
+    private readonly mailService: MailService,
+    private readonly configService: ConfigService,
   ) {}
 
   // eslint-disable-next-line @typescript-eslint/require-await
@@ -194,5 +205,72 @@ export class AuthService {
       result,
       token,
     };
+  }
+
+  // -----> forget password
+  async forgotPassword(dto: ForgotPasswordDto) {
+    const user = await this.usersRepository.findOne({
+      where: {
+        email: dto.email,
+      },
+    });
+
+    const message = 'If the email exists, a reset link has been sent.';
+
+    if (!user) {
+      return {
+        message,
+      };
+    }
+
+    const resetToken = randomBytes(32).toString('hex');
+
+    const resetPasswordExpires = new Date(Date.now() + 15 * 60 * 1000);
+
+    const saveUser = this.resetpPasswordToken.create({
+      token: resetToken,
+      expires: resetPasswordExpires,
+      isUsed: false,
+      user,
+    });
+    await this.resetpPasswordToken.save(saveUser);
+
+    const frontendUrl = this.configService.get<string>('FRONTEND_URL');
+
+    const resetLink = `${frontendUrl}/reset-password?token=${resetToken}`;
+
+    await this.mailService.sendResetPasswordEmail(user.email, resetLink);
+
+    return {
+      message,
+    };
+  }
+
+  async resetPassword(dto: ResetPasswordDto) {
+    const isToken = await this.resetpPasswordToken.findOne({
+      where: {
+        token: dto.token,
+      },
+      relations: {
+        user: true,
+      },
+    });
+
+    if (!isToken) {
+      throw new BadRequestException('Invalid reset token');
+    }
+
+    if (!isToken.expires || isToken.expires < new Date()) {
+      throw new BadRequestException('Reset token has expired');
+    }
+    const hashedPassword = await bcrypt.hash(dto.newPassword, 10);
+    const user = isToken.user;
+    user.password = hashedPassword;
+    await this.usersRepository.save(user);
+    await this.resetpPasswordToken.delete({
+      user: {
+        id: user.id,
+      },
+    });
   }
 }

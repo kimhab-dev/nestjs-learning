@@ -4,6 +4,7 @@ import { Order } from 'src/orders/entities/order-entitie';
 import { Exclude } from 'class-transformer';
 import { BaseEntity } from 'src/database/entities/bas-entity';
 import { Product } from 'src/products/entities/product-entities';
+import { ResetPasswordToken } from 'src/reset-password-token/reset-password-token.entity';
 
 @Entity('users')
 export class User extends BaseEntity {
@@ -21,6 +22,9 @@ export class User extends BaseEntity {
 
   @Column({ nullable: true })
   password: string;
+
+  @Column({ default: false })
+  isVerified: boolean;
 
   @Column({
     type: 'enum',
@@ -44,4 +48,10 @@ export class User extends BaseEntity {
 
   @OneToMany(() => Product, (product) => product.user)
   products: Product[];
+
+  @OneToMany(
+    () => ResetPasswordToken,
+    (resetPasswordToken) => resetPasswordToken.user,
+  )
+  resetPasswordToken: ResetPasswordToken[];
 }

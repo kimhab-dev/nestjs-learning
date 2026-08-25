@@ -10,12 +10,16 @@ import { AuthController } from './auth.controller';
 import { PassportModule } from '@nestjs/passport';
 import { GoogleStrategy } from './strategies/google.strategy';
 import { TwoFactorModule } from 'src/two-factor/two-factor.module';
+import { ResetPasswordToken } from 'src/reset-password-token/reset-password-token.entity';
+import { MailModule } from 'src/mail/mail.module';
 
 @Module({
   imports: [
     PassportModule,
     TwoFactorModule,
-    TypeOrmModule.forFeature([User]),
+    ConfigModule,
+    MailModule,
+    TypeOrmModule.forFeature([User, ResetPasswordToken]),
     JwtModule.registerAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
