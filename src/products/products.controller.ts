@@ -23,10 +23,7 @@ import { Role } from 'src/users/enums/role.enum';
 import { RolesGuard } from 'src/auth/guards/roles.guard';
 import { Public } from 'src/common/decorators/public.decorator';
 import { FileInterceptor } from '@nestjs/platform-express';
-import {
-  getRelativeFilePath,
-  multerUploadOptions,
-} from 'src/common/helpers/file-upload.helper';
+import { multerUploadOptions } from 'src/common/helpers/file-upload.helper';
 import { ApiConsumes } from '@nestjs/swagger';
 
 @UseGuards(RolesGuard)
@@ -36,44 +33,19 @@ export class ProductsController {
   constructor(private readonly productsService: ProductsService) {}
 
   @Post()
-  @UseInterceptors(
-    FileInterceptor('image', multerUploadOptions({ destination: 'products' })),
-  )
-  @ApiConsumes('multipart/form-data', 'application/json')
   @SuccessMessage('Create product successfully.')
-  create(
-    @Body() dto: CreateProductDto,
-    @CurrentUser() user: any,
-    @UploadedFile() file?: Express.Multer.File,
-  ) {
+  create(@Body() dto: CreateProductDto, @CurrentUser() user: any) {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
     const userId = user.userId;
     // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-    return this.productsService.create(dto, userId, file);
-  }
-
-  // POST /products/upload-image — upload standalone product image file
-  @Post('upload-image')
-  @UseInterceptors(
-    FileInterceptor('image', multerUploadOptions({ destination: 'products' })),
-  )
-  @ApiConsumes('multipart/form-data')
-  @SuccessMessage('Upload product image successfully.')
-  uploadImage(@UploadedFile() file?: Express.Multer.File) {
-    if (!file) {
-      throw new BadRequestException('Image file is required.');
-    }
-    return {
-      path: getRelativeFilePath(file, 'products'),
-    };
+    return this.productsService.create(dto, userId);
   }
 
   // POST /products/:id/image — upload and attach image to existing product
   @Post(':id/image')
   @UseInterceptors(
-    FileInterceptor('image', multerUploadOptions({ destination: 'products' })),
+    FileInterceptor('image', multerUploadOptions({ destination: 'products' })), // { destination: 'products' } for store in product folder
   )
-  @ApiConsumes('multipart/form-data')
   @SuccessMessage('Product image updated successfully.')
   uploadProductImage(
     @Param('id', ParseIntPipe) id: number,

@@ -1,11 +1,14 @@
 import {
+  BadRequestException,
   Body,
   Controller,
   Get,
   HttpCode,
   Post,
   Req,
+  UploadedFile,
   UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { RegisterDto } from './dto/register.dto';
@@ -21,6 +24,8 @@ import { VerifyTwoFactorDto } from 'src/two-factor/dto/verify-two-factor.dto';
 import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
 import { VerifyEmailDto } from './dto/verify-email.dto';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { multerUploadOptions } from 'src/common/helpers/file-upload.helper';
 
 @Controller('auth')
 export class AuthController {
@@ -110,5 +115,22 @@ export class AuthController {
   @SuccessMessage('Verification email sent successfully.')
   resendVerificationEmail(@Body() dto: ForgotPasswordDto) {
     return this.authService.resendVerificationEmail(dto.email);
+  }
+
+  @Post('upload-profile')
+  @UseInterceptors(
+    FileInterceptor('avatar', multerUploadOptions({ destination: 'profiles'}))
+  )
+  @SuccessMessage('Upload profile successfully.')
+  uploadProfile(
+    @CurrentUser() user: any,
+    @UploadedFile() file?: Express.Multer.File,
+  ) {
+    if (!file) {
+      throw new BadRequestException('Image file is required.');
+    }
+    console.log(user);
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+    return this.authService.uploadImageProfile(user.userId, file);
   }
 }

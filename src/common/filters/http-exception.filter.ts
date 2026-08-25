@@ -3,18 +3,30 @@ import {
   Catch,
   ExceptionFilter,
   HttpException,
+  HttpStatus,
 } from '@nestjs/common';
+import { Request, Response } from 'express';
+import { cleanupRequestFiles } from '../helpers/file-upload.helper';
 
-@Catch(HttpException)
+@Catch()
 export class HttpExceptionFilter implements ExceptionFilter {
-  catch(exception: HttpException, host: ArgumentsHost) {
-    // console.log("exception : ", exception, "Host", host);
+  catch(exception: unknown, host: ArgumentsHost) {
     const ctx = host.switchToHttp();
-    const request = ctx.getRequest();
-    const response = ctx.getResponse();
+    const request = ctx.getRequest<Request>();
+    const response = ctx.getResponse<Response>();
 
-    const status = exception.getStatus();
-    const mess = exception.getResponse();
+    // Safely delete any uploaded file(s) on disk if request fails
+    cleanupRequestFiles(request);
+
+    const status =
+      exception instanceof HttpException
+        ? exception.getStatus()
+        : HttpStatus.INTERNAL_SERVER_ERROR;
+
+    const mess =
+      exception instanceof HttpException
+        ? exception.getResponse()
+        : (exception as Error)?.message || 'Internal server error';
 
     response.status(status).json({
       result: false,

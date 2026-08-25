@@ -62,11 +62,6 @@ export class UsersController {
     @Query('limit') limit: string,
     @Query('active', ParseBoolPipe) active: boolean,
   ) {
-    // if (!id) {
-    //   throw new HttpException('Forbidden', HttpStatus.FORBIDDEN);
-    // }
-    // throw new BadRequestException();
-    // console.log(id, page, limit, active);
     return this.usersService.findOne(id);
   }
 

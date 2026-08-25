@@ -34,6 +34,9 @@ export class User extends BaseEntity {
   })
   role: Role;
 
+  @Column({nullable: true})
+  avatar: string;
+
   @Column({ default: false })
   twoFactorEnabled: boolean;
 

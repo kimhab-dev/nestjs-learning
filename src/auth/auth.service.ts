@@ -24,6 +24,9 @@ import { EmailVerificationToken } from 'src/email-verification-token/email-verif
 import { ConfigService } from '@nestjs/config';
 import { ResetPasswordDto } from './dto/reset-password.dto';
 import { VerifyEmailDto } from './dto/verify-email.dto';
+import { getRelativeFilePath, removeUploadedFile } from 'src/common/helpers/file-upload.helper';
+import { plainToInstance } from 'class-transformer';
+import { AllUsersResponseDto, UsersResponseDto } from 'src/users/dto/user-response.dto';
 
 @Injectable()
 export class AuthService {
@@ -388,5 +391,32 @@ export class AuthService {
     const verificationLink = `${frontendUrl}/verify-email?token=${verificationToken}`;
 
     await this.mailService.sendVerificationEmail(user.email, verificationLink);
+  }
+
+  async uploadImageProfile(
+    userId: number,
+    file: Express.Multer.File,
+  ): Promise<AllUsersResponseDto> {
+    const user = await this.usersRepository.findOne({
+      where: {
+        id: userId,
+      },
+    });
+
+    if (!user) {
+      removeUploadedFile(file.path);
+      throw new NotFoundException('User not found.');
+    }
+
+    const oldImage = user.avatar;
+    user.avatar = getRelativeFilePath(file, 'profiles');
+    const saved = await this.usersRepository.save(user);
+    if (oldImage && oldImage !== user.avatar) {
+      removeUploadedFile(oldImage);
+    }
+
+    return plainToInstance(AllUsersResponseDto, saved, {
+      excludeExtraneousValues: true,
+    });
   }
 }

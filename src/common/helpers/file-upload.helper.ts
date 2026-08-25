@@ -17,13 +17,6 @@ export const DEFAULT_ALLOWED_IMAGE_TYPES = [
   'image/svg+xml',
 ];
 
-/**
- * Creates reusable Multer options configured for disk storage with dynamic subfolders,
- * automatic directory creation, collision-free naming, and file validation.
- *
- * @example
- * \@UseInterceptors(FileInterceptor('image', multerUploadOptions({ destination: 'products' })))
- */
 export function multerUploadOptions(
   config: MulterUploadOptionsConfig = {},
 ): Options {
@@ -45,6 +38,7 @@ export function multerUploadOptions(
       filename: (req, file, callback) => {
         const uniqueSuffix = `${Date.now()}-${Math.round(Math.random() * 1e9)}`;
         const ext = extname(file.originalname).toLowerCase();
+        console.log('3. filename called');
         callback(null, `${uniqueSuffix}${ext}`);
       },
     }),
@@ -64,9 +58,6 @@ export function multerUploadOptions(
   };
 }
 
-/**
- * Normalizes an uploaded file path to a URL-friendly path (e.g. `uploads/products/123.jpg`).
- */
 export function getRelativeFilePath(
   file: Express.Multer.File,
   subFolder = 'products',
@@ -74,9 +65,6 @@ export function getRelativeFilePath(
   return `uploads/${subFolder}/${file.filename}`;
 }
 
-/**
- * Safely removes a file from disk given its relative or absolute path.
- */
 export function removeUploadedFile(filePath?: string | null): void {
   if (!filePath) return;
 
@@ -90,5 +78,38 @@ export function removeUploadedFile(filePath?: string | null): void {
     }
   } catch (error) {
     console.error(`Failed to delete file at ${absolutePath}:`, error);
+  }
+}
+
+export function cleanupRequestFiles(req?: any): void {
+  if (!req) return;
+
+  const reqObj = req as {
+    file?: Express.Multer.File;
+    files?:
+      Express.Multer.File[] | Record<string, Express.Multer.File[]> | undefined;
+  };
+
+  if (reqObj.file?.path) {
+    removeUploadedFile(reqObj.file.path);
+  }
+
+  if (Array.isArray(reqObj.files)) {
+    for (const file of reqObj.files) {
+      if (file?.path) {
+        removeUploadedFile(file.path);
+      }
+    }
+  } else if (reqObj.files && typeof reqObj.files === 'object') {
+    for (const key of Object.keys(reqObj.files)) {
+      const files = reqObj.files[key];
+      if (Array.isArray(files)) {
+        for (const file of files) {
+          if (file?.path) {
+            removeUploadedFile(file.path);
+          }
+        }
+      }
+    }
   }
 }

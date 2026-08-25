@@ -26,26 +26,19 @@ export class ProductsService {
   async create(
     dto: CreateProductDto,
     userId: number,
-    file?: Express.Multer.File,
   ): Promise<ProductResponseDto> {
     const isProduct = await this.productsRepository.findOne({
       where: { name: dto.name },
     });
     if (isProduct) {
-      if (file) {
-        removeUploadedFile(file.path);
-      }
       throw new ConflictException('This product is already have.');
     }
-
-    const image = file ? getRelativeFilePath(file, 'products') : dto.image;
 
     const product = this.productsRepository.create({
       name: dto.name,
       price: dto.price,
       description: dto.description,
       stock: dto.stock,
-      image,
       user: { id: userId },
     });
     const saved = await this.productsRepository.save(product);
@@ -176,6 +169,7 @@ export class ProductsService {
     const saved = await this.productsRepository.save(product);
 
     if (oldImage && oldImage !== product.image) {
+      console.log("remove");
       removeUploadedFile(oldImage);
     }
 

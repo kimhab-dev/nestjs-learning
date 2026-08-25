@@ -9,6 +9,9 @@ export class UsersResponseDto {
 
   @Expose()
   email: string;
+
+  @Expose()
+  createdAt: Date;
 }
 
 export class AllUsersResponseDto {
@@ -26,6 +29,9 @@ export class AllUsersResponseDto {
 
   @Expose()
   age: number;
+
+  @Expose()
+  avatar: string;
 
   @Expose()
   createdAt: Date;

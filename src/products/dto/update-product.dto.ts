@@ -17,12 +17,6 @@ export class UpdateProductDto {
   description?: string;
 
   @IsOptional()
-  @Type(() => Number)
-  @IsNumber()
-  @Min(0)
-  stock?: number;
-
-  @IsOptional()
   @IsString()
   image?: string;
 }
