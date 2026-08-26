@@ -163,5 +163,28 @@ export class MailService {
       // We do not fail the request if the security alert fails to send
     }
   }
+
+  async sendPasswordChangedAlert(email: string): Promise<void> {
+    try {
+      await this.transporter.sendMail({
+        from: this.configService.get<string>('MAIL_USER'),
+        to: email,
+        subject: 'Security Alert: Your Password Was Changed',
+        html: `
+          <h2>Your Password Has Been Changed</h2>
+          <p>The password for your account was recently changed.</p>
+          <p>If you made this change, no further action is needed.</p>
+          <p>
+            If you did <strong>not</strong> make this change, your account may be compromised.
+            Please use the forgot password flow immediately to regain access, or contact support.
+          </p>
+        `,
+      });
+    } catch (error) {
+      console.error('Email sending failed:', error);
+      // We do not fail the request if the security alert fails to send
+    }
+  }
 }
+
 

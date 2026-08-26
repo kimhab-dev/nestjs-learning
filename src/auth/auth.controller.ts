@@ -26,6 +26,7 @@ import { ResetPasswordDto } from './dto/reset-password.dto';
 import { VerifyEmailDto } from './dto/verify-email.dto';
 import { ChangeEmailRequestDto } from './dto/change-email-request.dto';
 import { ConfirmChangeEmailDto } from './dto/confirm-change-email.dto';
+import { ChangePasswordDto } from './dto/change-password.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { multerUploadOptions } from 'src/common/helpers/file-upload.helper';
 
@@ -162,5 +163,14 @@ export class AuthController {
   confirmChangeEmail(@Body() dto: ConfirmChangeEmailDto) {
     return this.authService.confirmChangeEmail(dto);
   }
-}
 
+  // ----------> Change Password
+  @Post('change-password')
+  @UseGuards(JWTAuthGuard)
+  @HttpCode(200)
+  @SuccessMessage('Password changed successfully.')
+  changePassword(@CurrentUser() user: any, @Body() dto: ChangePasswordDto) {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access
+    return this.authService.changePassword(user.userId, dto);
+  }
+}

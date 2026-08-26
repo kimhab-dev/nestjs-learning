@@ -1,4 +1,4 @@
-import { IsEmail, IsNotEmpty, IsString } from 'class-validator';
+import { IsEmail, IsNotEmpty, IsOptional, IsString } from 'class-validator';
 
 export class ChangeEmailRequestDto {
   @IsEmail({}, { message: 'Invalid email format' })
@@ -6,6 +6,6 @@ export class ChangeEmailRequestDto {
   newEmail: string;
 
   @IsString()
-  @IsNotEmpty()
-  password: string;
+  @IsOptional()
+  password?: string;
 }

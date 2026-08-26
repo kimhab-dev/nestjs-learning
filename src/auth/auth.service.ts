@@ -27,6 +27,7 @@ import { ResetPasswordDto } from './dto/reset-password.dto';
 import { VerifyEmailDto } from './dto/verify-email.dto';
 import { ChangeEmailRequestDto } from './dto/change-email-request.dto';
 import { ConfirmChangeEmailDto } from './dto/confirm-change-email.dto';
+import { ChangePasswordDto } from './dto/change-password.dto';
 import {
   getRelativeFilePath,
   removeUploadedFile,
@@ -456,15 +457,19 @@ export class AuthService {
       throw new NotFoundException('User not found.');
     }
 
-    if (!user.password) {
-      throw new BadRequestException(
-        'Cannot change email for accounts authenticated solely via external providers.',
-      );
-    }
-
-    const isPasswordValid = await bcrypt.compare(dto.password, user.password);
-    if (!isPasswordValid) {
-      throw new UnauthorizedException('Invalid current password.');
+    // For regular accounts (email + password), validate the current password.
+    // For OAuth-only accounts (no password), skip password check since they
+    // authenticated via an external provider and cannot have a local password.
+    if (user.password) {
+      if (!dto.password) {
+        throw new BadRequestException(
+          'Current password is required to change email for this account.',
+        );
+      }
+      const isPasswordValid = await bcrypt.compare(dto.password, user.password);
+      if (!isPasswordValid) {
+        throw new UnauthorizedException('Invalid current password.');
+      }
     }
 
     if (user.email.toLowerCase() === dto.newEmail.toLowerCase()) {
@@ -557,6 +562,51 @@ export class AuthService {
 
     return {
       message: 'Email changed successfully.',
+    };
+  }
+
+  // -----> change password
+  async changePassword(userId: number, dto: ChangePasswordDto) {
+    const user = await this.usersRepository.findOne({
+      where: { id: userId },
+    });
+
+    if (!user) {
+      throw new NotFoundException('User not found.');
+    }
+
+    if (user.password) {
+      // Regular account: currentPassword is mandatory
+      if (!dto.currentPassword) {
+        throw new BadRequestException(
+          'Current password is required to change your password.',
+        );
+      }
+      const isPasswordValid = await bcrypt.compare(
+        dto.currentPassword,
+        user.password,
+      );
+      if (!isPasswordValid) {
+        throw new UnauthorizedException('Current password is incorrect.');
+      }
+      if (await bcrypt.compare(dto.newPassword, user.password)) {
+        throw new BadRequestException(
+          'New password cannot be the same as the current password.',
+        );
+      }
+    }
+    // OAuth account: no existing password, allow setting one for the first time.
+
+    user.password = await bcrypt.hash(dto.newPassword, 10);
+    await this.usersRepository.save(user);
+
+    // Fire-and-forget security alert email
+    await this.mailService.sendPasswordChangedAlert(user.email);
+
+    return {
+      message: user.password
+        ? 'Password changed successfully.'
+        : 'Password set successfully. You can now also log in with your email and password.',
     };
   }
 }
