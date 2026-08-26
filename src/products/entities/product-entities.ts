@@ -1,6 +1,6 @@
-import { BaseEntity } from 'src/database/entities/bas-entity';
-import { OrderItems } from 'src/orders/entities/order-item.entities';
-import { User } from 'src/users/entities/user.entity';
+import { BaseEntity } from '../../database/entities/bas-entity';
+import { OrderItems } from '../../orders/entities/order-item.entities';
+import { User } from '../../users/entities/user.entity';
 import { Column, Entity, JoinColumn, ManyToOne, OneToMany } from 'typeorm';
 
 @Entity('products')

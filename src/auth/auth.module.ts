@@ -4,14 +4,15 @@ import { JwtModule } from '@nestjs/jwt';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 
-import { User } from 'src/users/entities/user.entity';
+import { User } from '../users/entities/user.entity';
 import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
 import { PassportModule } from '@nestjs/passport';
 import { GoogleStrategy } from './strategies/google.strategy';
 import { TwoFactorModule } from 'src/two-factor/two-factor.module';
-import { ResetPasswordToken } from 'src/reset-password-token/reset-password-token.entity';
+import { ResetPasswordToken } from '../reset-password-token/reset-password-token.entity';
 import { EmailVerificationToken } from 'src/email-verification-token/email-verification-token.entity';
+import { ChangeEmailToken } from 'src/change-email-token/change-email-token.entity';
 import { MailModule } from 'src/mail/mail.module';
 
 @Module({
@@ -24,6 +25,7 @@ import { MailModule } from 'src/mail/mail.module';
       User,
       ResetPasswordToken,
       EmailVerificationToken,
+      ChangeEmailToken,
     ]),
     JwtModule.registerAsync({
       imports: [ConfigModule],

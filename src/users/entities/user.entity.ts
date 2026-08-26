@@ -1,11 +1,12 @@
 import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from 'typeorm';
 import { Role } from '../enums/role.enum';
-import { Order } from 'src/orders/entities/order-entitie';
+import { Order } from '../../orders/entities/order-entitie';
 import { Exclude } from 'class-transformer';
-import { BaseEntity } from 'src/database/entities/bas-entity';
-import { Product } from 'src/products/entities/product-entities';
-import { ResetPasswordToken } from 'src/reset-password-token/reset-password-token.entity';
-import { EmailVerificationToken } from 'src/email-verification-token/email-verification-token.entity';
+import { BaseEntity } from '../../database/entities/bas-entity';
+import { Product } from '../../products/entities/product-entities';
+import { ResetPasswordToken } from '../../reset-password-token/reset-password-token.entity';
+import { EmailVerificationToken } from '../../email-verification-token/email-verification-token.entity';
+import { ChangeEmailToken } from '../../change-email-token/change-email-token.entity';
 
 @Entity('users')
 export class User extends BaseEntity {
@@ -64,4 +65,10 @@ export class User extends BaseEntity {
     (emailVerificationToken) => emailVerificationToken.user,
   )
   emailVerificationTokens: EmailVerificationToken[];
+
+  @OneToMany(
+    () => ChangeEmailToken,
+    (changeEmailToken) => changeEmailToken.user,
+  )
+  changeEmailTokens: ChangeEmailToken[];
 }

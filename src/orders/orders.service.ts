@@ -14,7 +14,7 @@ import {
 import { UpdateOrderDto } from './dto/update-order.dto';
 import { GetOrdersDto } from './dto/get-orders.dto';
 import { plainToInstance } from 'class-transformer';
-import { Product } from 'src/products/entities/product-entities';
+import { Product } from '../products/entities/product-entities';
 import { OrderItems } from './entities/order-item.entities';
 import { TelegramService } from 'src/telegram/telegram.service';
 

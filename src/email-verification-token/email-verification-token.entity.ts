@@ -1,5 +1,5 @@
 import { BaseEntity } from '../database/entities/bas-entity';
-import { User } from 'src/users/entities/user.entity';
+import { User } from '../users/entities/user.entity';
 import { Column, Entity, ManyToOne } from 'typeorm';
 
 @Entity({ name: 'email_verification_tokens' })

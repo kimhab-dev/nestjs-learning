@@ -1,5 +1,5 @@
-import { BaseEntity } from 'src/database/entities/bas-entity';
-import { User } from 'src/users/entities/user.entity';
+import { BaseEntity } from '../../database/entities/bas-entity';
+import { User } from '../../users/entities/user.entity';
 import { Column, Entity, JoinColumn, ManyToOne, OneToMany } from 'typeorm';
 import { OrderItems } from './order-item.entities';
 

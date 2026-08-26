@@ -1,5 +1,12 @@
 import 'dotenv/config';
+import { EmailVerificationToken } from '../email-verification-token/email-verification-token.entity';
+import { Order } from '../orders/entities/order-entitie';
+import { User } from '../users/entities/user.entity';
 import { DataSource } from 'typeorm';
+import { OrderItems } from '../orders/entities/order-item.entities';
+import { Product } from '../products/entities/product-entities';
+import { ResetPasswordToken } from '../reset-password-token/reset-password-token.entity';
+import { ChangeEmailToken } from '../change-email-token/change-email-token.entity';
 
 export const AppDataSource = new DataSource({
   type: 'mysql',
@@ -10,7 +17,15 @@ export const AppDataSource = new DataSource({
   password: process.env.DB_PASSWORD,
   database: process.env.DB_DATABASE,
 
-  entities: ['src/**/*.entity.ts'],
+  entities: [
+    User,
+    Order,
+    OrderItems,
+    Product,
+    ResetPasswordToken,
+    EmailVerificationToken,
+    ChangeEmailToken,
+  ],
 
   migrations: ['src/database/migrations/*.ts'],
 

@@ -4,7 +4,7 @@ import { OrdersService } from './orders.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Order } from './entities/order-entitie';
 import { OrderItems } from './entities/order-item.entities';
-import { Product } from 'src/products/entities/product-entities';
+import { Product } from '../products/entities/product-entities';
 import { TelegramModule } from 'src/telegram/telegram.module';
 
 @Module({

@@ -20,11 +20,12 @@ import { JWTAuthGuard } from './guards/jwt-auth.guard';
 import { Public } from 'src/common/decorators/public.decorator';
 import { GoogleAuthGuard } from './guards/google-auth.guard';
 import { TwoFactorService } from 'src/two-factor/two-factor.service';
-import { User } from 'src/users/entities/user.entity';
 import { VerifyTwoFactorDto } from 'src/two-factor/dto/verify-two-factor.dto';
 import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
 import { VerifyEmailDto } from './dto/verify-email.dto';
+import { ChangeEmailRequestDto } from './dto/change-email-request.dto';
+import { ConfirmChangeEmailDto } from './dto/confirm-change-email.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { multerUploadOptions } from 'src/common/helpers/file-upload.helper';
 
@@ -141,4 +142,25 @@ export class AuthController {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
     return this.authService.deleteAvatar(user.userId);
   }
+
+  @Post('change-email-request')
+  @UseGuards(JWTAuthGuard)
+  @HttpCode(200)
+  @SuccessMessage('Verification link sent to your new email.')
+  changeEmailRequest(
+    @CurrentUser() user: any,
+    @Body() dto: ChangeEmailRequestDto,
+  ) {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access
+    return this.authService.requestChangeEmail(user.userId, dto);
+  }
+
+  @Public()
+  @Post('confirm-change-email')
+  @HttpCode(200)
+  @SuccessMessage('Email changed successfully.')
+  confirmChangeEmail(@Body() dto: ConfirmChangeEmailDto) {
+    return this.authService.confirmChangeEmail(dto);
+  }
 }
+

@@ -12,18 +12,21 @@ import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
 import { randomBytes } from 'crypto';
 
-import { User } from 'src/users/entities/user.entity';
+import { User } from '../users/entities/user.entity';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import { VerifyTwoFactorDto } from 'src/two-factor/dto/verify-two-factor.dto';
 import { verify } from 'otplib';
 import { MailService } from 'src/mail/mail.service';
 import { ForgotPasswordDto } from './dto/forgot-password.dto';
-import { ResetPasswordToken } from 'src/reset-password-token/reset-password-token.entity';
+import { ResetPasswordToken } from '../reset-password-token/reset-password-token.entity';
 import { EmailVerificationToken } from 'src/email-verification-token/email-verification-token.entity';
+import { ChangeEmailToken } from 'src/change-email-token/change-email-token.entity';
 import { ConfigService } from '@nestjs/config';
 import { ResetPasswordDto } from './dto/reset-password.dto';
 import { VerifyEmailDto } from './dto/verify-email.dto';
+import { ChangeEmailRequestDto } from './dto/change-email-request.dto';
+import { ConfirmChangeEmailDto } from './dto/confirm-change-email.dto';
 import {
   getRelativeFilePath,
   removeUploadedFile,
@@ -39,6 +42,8 @@ export class AuthService {
     private readonly resetpPasswordToken: Repository<ResetPasswordToken>,
     @InjectRepository(EmailVerificationToken)
     private readonly emailVerificationTokenRepository: Repository<EmailVerificationToken>,
+    @InjectRepository(ChangeEmailToken)
+    private readonly changeEmailTokenRepository: Repository<ChangeEmailToken>,
     private readonly jwtService: JwtService,
     private readonly mailService: MailService,
     private readonly configService: ConfigService,
@@ -432,12 +437,126 @@ export class AuthService {
     });
     if (!user) throw new NotFoundException('User not found');
     if (user.avatar) {
-      if (user.avatar == 'defualt-avatar.jpg')
+      if (user.avatar == 'uploads/defualt-avatar.jpg')
         throw new BadRequestException('Default avatar cannot delete.');
       const oldAvatar = user.avatar;
       removeUploadedFile(oldAvatar);
     }
-    user.avatar = 'defualt-avatar.jpg';
+    user.avatar = 'uploads/defualt-avatar.jpg';
     await this.usersRepository.save(user);
+  }
+
+  // -----> change email
+  async requestChangeEmail(userId: number, dto: ChangeEmailRequestDto) {
+    const user = await this.usersRepository.findOne({
+      where: { id: userId },
+    });
+
+    if (!user) {
+      throw new NotFoundException('User not found.');
+    }
+
+    if (!user.password) {
+      throw new BadRequestException(
+        'Cannot change email for accounts authenticated solely via external providers.',
+      );
+    }
+
+    const isPasswordValid = await bcrypt.compare(dto.password, user.password);
+    if (!isPasswordValid) {
+      throw new UnauthorizedException('Invalid current password.');
+    }
+
+    if (user.email.toLowerCase() === dto.newEmail.toLowerCase()) {
+      throw new BadRequestException(
+        'New email cannot be the same as your current email.',
+      );
+    }
+
+    const existingUser = await this.usersRepository.findOne({
+      where: { email: dto.newEmail },
+    });
+    if (existingUser) {
+      throw new ConflictException(
+        'The email is already in use by another account.',
+      );
+    }
+
+    // Clean up old change-email tokens for this user
+    await this.changeEmailTokenRepository.delete({
+      user: { id: user.id },
+    });
+
+    const changeToken = randomBytes(32).toString('hex');
+    const changeExpires = new Date(Date.now() + 30 * 60 * 1000); // 30 minutes
+
+    const changeTokenRecord = this.changeEmailTokenRepository.create({
+      token: changeToken,
+      newEmail: dto.newEmail,
+      expires: changeExpires,
+      isUsed: false,
+      user,
+    });
+    await this.changeEmailTokenRepository.save(changeTokenRecord);
+
+    const frontendUrl =
+      this.configService.get<string>('FRONTEND_URL') || 'http://localhost:3000';
+    const verificationLink = `${frontendUrl}/verify-change-email?token=${changeToken}`;
+
+    await this.mailService.sendChangeEmailVerification(
+      dto.newEmail,
+      verificationLink,
+    );
+    await this.mailService.sendChangeEmailSecurityAlert(
+      user.email,
+      dto.newEmail,
+    );
+
+    return {
+      message: 'Verification link sent to your new email address.',
+    };
+  }
+
+  async confirmChangeEmail(dto: ConfirmChangeEmailDto) {
+    const tokenRecord = await this.changeEmailTokenRepository.findOne({
+      where: { token: dto.token },
+      relations: { user: true },
+    });
+
+    if (!tokenRecord) {
+      throw new BadRequestException('Invalid or expired email change token.');
+    }
+
+    if (
+      tokenRecord.isUsed ||
+      (tokenRecord.expires && tokenRecord.expires < new Date())
+    ) {
+      throw new BadRequestException(
+        'Email change token has expired or has already been used.',
+      );
+    }
+
+    // Re-verify that newEmail is not taken in the interim
+    const existingUser = await this.usersRepository.findOne({
+      where: { email: tokenRecord.newEmail },
+    });
+    if (existingUser && existingUser.id !== tokenRecord.user.id) {
+      throw new ConflictException(
+        'The new email address is already taken by another account.',
+      );
+    }
+
+    const user = tokenRecord.user;
+    user.email = tokenRecord.newEmail;
+    user.isVerified = true;
+    await this.usersRepository.save(user);
+
+    await this.changeEmailTokenRepository.delete({
+      user: { id: user.id },
+    });
+
+    return {
+      message: 'Email changed successfully.',
+    };
   }
 }
