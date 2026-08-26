@@ -24,10 +24,12 @@ import { EmailVerificationToken } from 'src/email-verification-token/email-verif
 import { ConfigService } from '@nestjs/config';
 import { ResetPasswordDto } from './dto/reset-password.dto';
 import { VerifyEmailDto } from './dto/verify-email.dto';
-import { getRelativeFilePath, removeUploadedFile } from 'src/common/helpers/file-upload.helper';
+import {
+  getRelativeFilePath,
+  removeUploadedFile,
+} from 'src/common/helpers/file-upload.helper';
 import { plainToInstance } from 'class-transformer';
-import { AllUsersResponseDto, UsersResponseDto } from 'src/users/dto/user-response.dto';
-
+import { AllUsersResponseDto } from 'src/users/dto/user-response.dto';
 @Injectable()
 export class AuthService {
   constructor(
@@ -64,6 +66,8 @@ export class AuthService {
       },
     );
   }
+
+  // ----------------------------------------------------------------------
 
   async register(dto: RegisterDto) {
     const findByEmail = await this.usersRepository.findBy({ email: dto.email });
@@ -418,5 +422,22 @@ export class AuthService {
     return plainToInstance(AllUsersResponseDto, saved, {
       excludeExtraneousValues: true,
     });
+  }
+
+  async deleteAvatar(userId: number) {
+    const user = await this.usersRepository.findOne({
+      where: {
+        id: userId,
+      },
+    });
+    if (!user) throw new NotFoundException('User not found');
+    if (user.avatar) {
+      if (user.avatar == 'defualt-avatar.jpg')
+        throw new BadRequestException('Default avatar cannot delete.');
+      const oldAvatar = user.avatar;
+      removeUploadedFile(oldAvatar);
+    }
+    user.avatar = 'defualt-avatar.jpg';
+    await this.usersRepository.save(user);
   }
 }

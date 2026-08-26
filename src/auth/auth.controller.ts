@@ -2,6 +2,7 @@ import {
   BadRequestException,
   Body,
   Controller,
+  Delete,
   Get,
   HttpCode,
   Post,
@@ -117,11 +118,12 @@ export class AuthController {
     return this.authService.resendVerificationEmail(dto.email);
   }
 
-  @Post('upload-profile')
+  @Post('avatar')
   @UseInterceptors(
     FileInterceptor('avatar', multerUploadOptions({ destination: 'profiles'}))
   )
   @SuccessMessage('Upload profile successfully.')
+  @HttpCode(201)
   uploadProfile(
     @CurrentUser() user: any,
     @UploadedFile() file?: Express.Multer.File,
@@ -129,8 +131,14 @@ export class AuthController {
     if (!file) {
       throw new BadRequestException('Image file is required.');
     }
-    console.log(user);
     // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
     return this.authService.uploadImageProfile(user.userId, file);
+  }
+
+  @Delete('avatar')
+  @SuccessMessage('Delete avatar profile successsfully')
+  deleteAvatar(@CurrentUser() user: any) {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+    return this.authService.deleteAvatar(user.userId);
   }
 }

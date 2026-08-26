@@ -20,11 +20,21 @@ import { TelegramModule } from './telegram/telegram.module';
 import { TwoFactorModule } from './two-factor/two-factor.module';
 import { ChatGateway } from './chat/chat.gateway';
 import { MailModule } from './mail/mail.module';
+import Joi from 'joi';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
+      validationSchema: Joi.object({
+        PORT: Joi.number().default(3000),
+        SECRET_KEY: Joi.string().required(),
+        DB_HOST: Joi.string().required(),
+        DB_PORT: Joi.number().required(),
+        DB_USERNAME: Joi.string().required(),
+        DB_PASSWORD: Joi.string().required(),
+        DB_DATABASE: Joi.string().required(),
+      }),
     }),
     TypeOrmModule.forRoot({
       type: 'mysql',
@@ -35,7 +45,7 @@ import { MailModule } from './mail/mail.module';
       database: process.env.DB_DATABASE,
 
       autoLoadEntities: true,
-      synchronize: true,
+      synchronize: false, // recoment false in production
     }),
     AuthModule,
     ProductsModule,

@@ -169,7 +169,6 @@ export class ProductsService {
     const saved = await this.productsRepository.save(product);
 
     if (oldImage && oldImage !== product.image) {
-      console.log("remove");
       removeUploadedFile(oldImage);
     }
 

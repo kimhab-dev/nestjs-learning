@@ -20,6 +20,9 @@ export class Product extends BaseEntity {
   @Column({ nullable: true })
   image?: string;
 
+  @Column({nullable: true})
+  test?: string;
+
   @ManyToOne(() => User, (user) => user.products, {
     nullable: true,
     onDelete: 'SET NULL',
