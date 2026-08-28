@@ -9,11 +9,11 @@ import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
 import { PassportModule } from '@nestjs/passport';
 import { GoogleStrategy } from './strategies/google.strategy';
-import { TwoFactorModule } from 'src/two-factor/two-factor.module';
+import { TwoFactorModule } from '../two-factor/two-factor.module';
 import { ResetPasswordToken } from '../reset-password-token/reset-password-token.entity';
-import { EmailVerificationToken } from 'src/email-verification-token/email-verification-token.entity';
-import { ChangeEmailToken } from 'src/change-email-token/change-email-token.entity';
-import { MailModule } from 'src/mail/mail.module';
+import { EmailVerificationToken } from '../email-verification-token/email-verification-token.entity';
+import { ChangeEmailToken } from '../change-email-token/change-email-token.entity';
+import { MailModule } from '../mail/mail.module';
 
 @Module({
   imports: [

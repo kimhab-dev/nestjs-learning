@@ -11,6 +11,9 @@ export class UsersResponseDto {
   email: string;
 
   @Expose()
+  avatar: string;
+
+  @Expose()
   createdAt: Date;
 }
 

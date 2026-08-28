@@ -12,11 +12,11 @@ import {
 } from '@nestjs/common';
 import { OrdersService } from './orders.service';
 import { CreateOrderDto } from './dto/create-order.dto';
-import { CurrentUser } from 'src/auth/decorator/current-user.decorator';
-import { SuccessMessage } from 'src/common/decorators/success-message.decorator';
-import { RolesGuard } from 'src/auth/guards/roles.guard';
-import { Roles } from 'src/auth/decorator/roles.decorator';
-import { Role } from 'src/users/enums/role.enum';
+import { CurrentUser } from '../auth/decorator/current-user.decorator';
+import { SuccessMessage } from '../common/decorators/success-message.decorator';
+import { RolesGuard } from '../auth/guards/roles.guard';
+import { Roles } from '../auth/decorator/roles.decorator';
+import { Role } from '../users/enums/role.enum';
 import { UpdateOrderDto } from './dto/update-order.dto';
 import { GetOrdersDto } from './dto/get-orders.dto';
 import { Order } from './entities/order-entitie';

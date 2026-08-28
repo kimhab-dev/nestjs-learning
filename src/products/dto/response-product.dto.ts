@@ -1,5 +1,5 @@
 import { Expose, Type } from 'class-transformer';
-import { UsersResponseDto } from 'src/users/dto/user-response.dto';
+import { UsersResponseDto } from '../../users/dto/user-response.dto';
 
 export class ProductResponseDto {
   @Expose()

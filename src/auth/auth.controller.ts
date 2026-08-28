@@ -7,6 +7,7 @@ import {
   HttpCode,
   Post,
   Req,
+  Res,
   UploadedFile,
   UseGuards,
   UseInterceptors,
@@ -29,6 +30,7 @@ import { ConfirmChangeEmailDto } from './dto/confirm-change-email.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { multerUploadOptions } from 'src/common/helpers/file-upload.helper';
+import { Throttle } from '@nestjs/throttler';
 
 @Controller('auth')
 export class AuthController {
@@ -45,6 +47,12 @@ export class AuthController {
     return this.authService.register(dto);
   }
 
+  // @Throttle({
+  //   default: {
+  //     limit: 5,
+  //     ttl: 60000,
+  //   },
+  // })
   @Post('login')
   @HttpCode(200)
   @Public() // make route to can public access
@@ -62,6 +70,12 @@ export class AuthController {
   }
 
   // ----------> Google OAuth2.0
+  @Throttle({
+    default: {
+      limit: 5,
+      ttl: 60000,
+    },
+  })
   @Public()
   @Get('google')
   @UseGuards(GoogleAuthGuard)
@@ -71,9 +85,11 @@ export class AuthController {
   @Get('google/callback')
   @UseGuards(GoogleAuthGuard)
   // eslint-disable-next-line @typescript-eslint/require-await
-  async googleCallback(@Req() req: any) {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-member-access
-    return req.user;
+  async googleCallback(@Req() req: any, @Res() res: any) {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment
+    const token = req.user.token;
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
+    return res.redirect(`http://localhost:5173/auth/callback?token=${token}`);
   }
 
   // ----------> Google Authenticator
@@ -90,6 +106,12 @@ export class AuthController {
     return this.authService.verifyLogin2fa(dto);
   }
 
+  @Throttle({
+    default: {
+      limit: 5,
+      ttl: 60000,
+    },
+  })
   @Public()
   @SuccessMessage('Send request forget password successfully.')
   @Post('forgot-password-request')
@@ -104,6 +126,12 @@ export class AuthController {
     return this.authService.resetPassword(dto);
   }
 
+  @Throttle({
+    default: {
+      limit: 5,
+      ttl: 60000,
+    },
+  })
   @Public()
   @Post('verify-email')
   @HttpCode(200)
@@ -112,6 +140,12 @@ export class AuthController {
     return this.authService.verifyEmail(dto);
   }
 
+  @Throttle({
+    default: {
+      limit: 5,
+      ttl: 60000,
+    },
+  })
   @Public()
   @Post('resend-verification-email')
   @HttpCode(200)
@@ -122,7 +156,7 @@ export class AuthController {
 
   @Post('avatar')
   @UseInterceptors(
-    FileInterceptor('avatar', multerUploadOptions({ destination: 'profiles'}))
+    FileInterceptor('avatar', multerUploadOptions({ destination: 'profiles' })),
   )
   @SuccessMessage('Upload profile successfully.')
   @HttpCode(201)

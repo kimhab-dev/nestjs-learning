@@ -16,7 +16,7 @@ import { GetOrdersDto } from './dto/get-orders.dto';
 import { plainToInstance } from 'class-transformer';
 import { Product } from '../products/entities/product-entities';
 import { OrderItems } from './entities/order-item.entities';
-import { TelegramService } from 'src/telegram/telegram.service';
+import { TelegramService } from '../telegram/telegram.service';
 
 @Injectable()
 export class OrdersService {
@@ -46,9 +46,6 @@ export class OrdersService {
       where: {
         items: {
           order: id,
-        },
-        user: {
-          id: userId,
         },
       },
       relations: {

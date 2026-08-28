@@ -4,16 +4,16 @@ import { Column, Entity, ManyToOne } from 'typeorm';
 
 @Entity({ name: 'change_email_tokens' })
 export class ChangeEmailToken extends BaseEntity {
-  @Column({ length: 255 })
+  @Column({ type: 'varchar', length: 255 })
   token: string;
 
-  @Column({ length: 255 })
+  @Column({ type: 'varchar', length: 255 })
   newEmail: string;
 
   @Column({ type: 'datetime' })
   expires: Date;
 
-  @Column({ default: false })
+  @Column({ type: 'boolean', default: false })
   isUsed: boolean;
 
   @ManyToOne(() => User, { nullable: false, onDelete: 'CASCADE' })

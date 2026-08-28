@@ -30,7 +30,6 @@ export class TwoFactorService {
     });
 
     const qrCode = await QRCode.toDataURL(uri);
-    user.twoFactorPendingSecret = secret;
 
     await this.userRepo.save(user);
     return {

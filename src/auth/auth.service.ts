@@ -15,13 +15,13 @@ import { randomBytes } from 'crypto';
 import { User } from '../users/entities/user.entity';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
-import { VerifyTwoFactorDto } from 'src/two-factor/dto/verify-two-factor.dto';
+import { VerifyTwoFactorDto } from '../two-factor/dto/verify-two-factor.dto';
 import { verify } from 'otplib';
-import { MailService } from 'src/mail/mail.service';
+import { MailService } from '../mail/mail.service';
 import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import { ResetPasswordToken } from '../reset-password-token/reset-password-token.entity';
-import { EmailVerificationToken } from 'src/email-verification-token/email-verification-token.entity';
-import { ChangeEmailToken } from 'src/change-email-token/change-email-token.entity';
+import { EmailVerificationToken } from '../email-verification-token/email-verification-token.entity';
+import { ChangeEmailToken } from '../change-email-token/change-email-token.entity';
 import { ConfigService } from '@nestjs/config';
 import { ResetPasswordDto } from './dto/reset-password.dto';
 import { VerifyEmailDto } from './dto/verify-email.dto';
@@ -31,9 +31,9 @@ import { ChangePasswordDto } from './dto/change-password.dto';
 import {
   getRelativeFilePath,
   removeUploadedFile,
-} from 'src/common/helpers/file-upload.helper';
+} from '../common/helpers/file-upload.helper';
 import { plainToInstance } from 'class-transformer';
-import { AllUsersResponseDto } from 'src/users/dto/user-response.dto';
+import { AllUsersResponseDto } from '../users/dto/user-response.dto';
 @Injectable()
 export class AuthService {
   constructor(
@@ -166,8 +166,7 @@ export class AuthService {
       },
     });
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { password, twoFactorPendingSecret, twoFactorSecret, ...profile } =
-      userProfile[0];
+    const { password, twoFactorSecret, ...profile } = userProfile[0];
     return profile;
   }
 

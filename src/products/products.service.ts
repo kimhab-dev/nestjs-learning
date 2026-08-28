@@ -14,7 +14,7 @@ import { AddStockDto } from './dto/add-stock.dto';
 import {
   getRelativeFilePath,
   removeUploadedFile,
-} from 'src/common/helpers/file-upload.helper';
+} from '../common/helpers/file-upload.helper';
 
 @Injectable()
 export class ProductsService {

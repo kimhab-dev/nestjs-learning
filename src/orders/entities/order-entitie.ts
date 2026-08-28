@@ -5,7 +5,11 @@ import { OrderItems } from './order-item.entities';
 
 @Entity('orders')
 export class Order extends BaseEntity {
-  @Column()
+  @Column({
+    type: 'decimal',
+    precision: 10,
+    scale: 2,
+  })
   total: number;
 
   @ManyToOne(() => User, {

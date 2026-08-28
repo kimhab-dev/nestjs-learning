@@ -38,7 +38,6 @@ export function multerUploadOptions(
       filename: (req, file, callback) => {
         const uniqueSuffix = `${Date.now()}-${Math.round(Math.random() * 1e9)}`;
         const ext = extname(file.originalname).toLowerCase();
-        console.log('3. filename called');
         callback(null, `${uniqueSuffix}${ext}`);
       },
     }),

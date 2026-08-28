@@ -5,23 +5,28 @@ import { Column, Entity, JoinColumn, ManyToOne, OneToMany } from 'typeorm';
 
 @Entity('products')
 export class Product extends BaseEntity {
-  @Column()
+  @Column({ type: 'varchar', length: 255 })
   name: string;
 
-  @Column('decimal')
+  @Column({
+    type: 'decimal',
+    precision: 10,
+    scale: 2,
+  })
   price: number;
 
-  @Column()
+  @Column({ type: 'text' })
   description: string;
 
-  @Column()
+  @Column({ type: 'int' })
   stock: number;
 
-  @Column({ nullable: true })
+  @Column({
+    type: 'varchar',
+    length: 255,
+    nullable: true,
+  })
   image?: string;
-
-  @Column({nullable: true})
-  test?: string;
 
   @ManyToOne(() => User, (user) => user.products, {
     nullable: true,

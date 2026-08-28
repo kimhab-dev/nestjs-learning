@@ -14,16 +14,16 @@ import {
 } from '@nestjs/common';
 import { ProductsService } from './products.service';
 import { CreateProductDto } from './dto/create-product.dto';
-import { SuccessMessage } from 'src/common/decorators/success-message.decorator';
-import { CurrentUser } from 'src/auth/decorator/current-user.decorator';
+import { SuccessMessage } from '../common/decorators/success-message.decorator';
+import { CurrentUser } from '../auth/decorator/current-user.decorator';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { AddStockDto } from './dto/add-stock.dto';
-import { Roles } from 'src/auth/decorator/roles.decorator';
-import { Role } from 'src/users/enums/role.enum';
-import { RolesGuard } from 'src/auth/guards/roles.guard';
-import { Public } from 'src/common/decorators/public.decorator';
+import { Roles } from '../auth/decorator/roles.decorator';
+import { Role } from '../users/enums/role.enum';
+import { RolesGuard } from '../auth/guards/roles.guard';
+import { Public } from '../common/decorators/public.decorator';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { multerUploadOptions } from 'src/common/helpers/file-upload.helper';
+import { multerUploadOptions } from '../common/helpers/file-upload.helper';
 import { ApiConsumes } from '@nestjs/swagger';
 
 @UseGuards(RolesGuard)

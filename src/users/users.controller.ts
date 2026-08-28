@@ -20,14 +20,14 @@ import {
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 
-import { AuthGuard } from 'src/auth/auth.guard';
+import { AuthGuard } from '../auth/auth.guard';
 import { JWTAuthGuard } from '../auth/guards/jwt-auth.guard';
 
-import { Public } from 'src/common/decorators/public.decorator';
-import { SuccessMessage } from 'src/common/decorators/success-message.decorator';
+import { Public } from '../common/decorators/public.decorator';
+import { SuccessMessage } from '../common/decorators/success-message.decorator';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { RolesGuard } from 'src/auth/guards/roles.guard';
-import { Roles } from 'src/auth/decorator/roles.decorator';
+import { RolesGuard } from '../auth/guards/roles.guard';
+import { Roles } from '../auth/decorator/roles.decorator';
 import { Role } from './enums/role.enum';
 
 @Controller('users')

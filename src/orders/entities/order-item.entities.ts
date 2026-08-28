@@ -5,10 +5,14 @@ import { Product } from '../../products/entities/product-entities';
 
 @Entity('order_items')
 export class OrderItems extends BaseEntity {
-  @Column()
+  @Column({ type: 'int' })
   quantity: number;
 
-  @Column()
+  @Column({
+    type: 'decimal',
+    precision: 10,
+    scale: 2,
+  })
   price: number;
 
   @ManyToOne(() => Order, (order) => order.items, {

@@ -8,9 +8,9 @@ export abstract class BaseEntity {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @CreateDateColumn()
+  @CreateDateColumn({ type: 'timestamp' })
   createdAt: Date;
 
-  @UpdateDateColumn()
+  @UpdateDateColumn({ type: 'timestamp' })
   updatedAt: Date;
 }

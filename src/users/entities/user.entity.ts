@@ -10,7 +10,7 @@ import { ChangeEmailToken } from '../../change-email-token/change-email-token.en
 
 @Entity('users')
 export class User extends BaseEntity {
-  @Column()
+  @Column({ type: 'varchar', length: 255 })
   name: string;
 
   @Column({
@@ -19,13 +19,13 @@ export class User extends BaseEntity {
   })
   age: number | null; // tell typescript this field can number orr null
 
-  @Column()
+  @Column({ type: 'varchar', length: 255 })
   email: string;
 
-  @Column({ nullable: true })
+  @Column({ type: 'varchar', length: 255, nullable: true })
   password: string;
 
-  @Column({ default: false })
+  @Column({ type: 'boolean', default: false })
   isVerified: boolean;
 
   @Column({
@@ -35,17 +35,14 @@ export class User extends BaseEntity {
   })
   role: Role;
 
-  @Column({nullable: true})
+  @Column({ type: 'varchar', length: 255, nullable: true })
   avatar: string;
 
-  @Column({ default: false })
+  @Column({ type: 'boolean', default: false })
   twoFactorEnabled: boolean;
 
-  @Column({ type: 'varchar', nullable: true })
+  @Column({ type: 'varchar', length: 255, nullable: true })
   twoFactorSecret: string | null;
-
-  @Column({ type: 'varchar', nullable: true })
-  twoFactorPendingSecret: string | null;
 
   // () => Order : is relationship tv kan Order
   @OneToMany(() => Order, (order) => order.user)

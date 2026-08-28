@@ -4,13 +4,13 @@ import { Column, Entity, ManyToOne } from 'typeorm';
 
 @Entity({ name: 'reset_password_tokens' })
 export class ResetPasswordToken extends BaseEntity {
-  @Column({ length: 255 })
+  @Column({ type: 'varchar', length: 255 })
   token: string;
 
   @Column({ type: 'datetime' })
   expires: Date;
 
-  @Column({ default: false })
+  @Column({ type: 'boolean', default: false })
   isUsed: boolean;
 
   @ManyToOne(() => User, { nullable: false, onDelete: 'CASCADE' })

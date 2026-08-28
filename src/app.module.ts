@@ -4,6 +4,7 @@ import {
   NestModule,
   RequestMethod,
 } from '@nestjs/common';
+import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { APP_GUARD } from '@nestjs/core';
 import { JWTAuthGuard } from './auth/guards/jwt-auth.guard';
 import { TypeOrmModule } from '@nestjs/typeorm';
@@ -24,6 +25,12 @@ import Joi from 'joi';
 
 @Module({
   imports: [
+    ThrottlerModule.forRoot([
+      {
+        ttl: 60000,
+        limit: 10,
+      },
+    ]),
     ConfigModule.forRoot({
       isGlobal: true,
       validationSchema: Joi.object({
@@ -61,6 +68,10 @@ import Joi from 'joi';
     {
       provide: APP_GUARD, // register guaed to global for not write @UserGuard() any ware
       useClass: JWTAuthGuard, // class for
+    },
+    {
+      provide: APP_GUARD, // register guaed to global for not write @UserGuard() any ware
+      useClass: ThrottlerGuard, // class for
     },
     ChatGateway,
   ],

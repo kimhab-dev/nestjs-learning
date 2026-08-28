@@ -1,5 +1,5 @@
 import { Expose, Transform, Type } from 'class-transformer';
-import { UsersResponseDto } from 'src/users/dto/user-response.dto';
+import { UsersResponseDto } from '../../users/dto/user-response.dto';
 
 export class OrderItemResponseDto {
   @Expose()
@@ -25,6 +25,9 @@ export class OrderResponseDto {
 
   @Expose()
   productId: number;
+
+  @Expose()
+  name: string;
 
   @Expose()
   total: number;
