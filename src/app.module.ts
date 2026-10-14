@@ -21,6 +21,7 @@ import { TelegramModule } from './telegram/telegram.module';
 import { TwoFactorModule } from './two-factor/two-factor.module';
 import { ChatGateway } from './chat/chat.gateway';
 import { MailModule } from './mail/mail.module';
+import { CategoriesModule } from './categories/categories.module';
 import Joi from 'joi';
 
 @Module({
@@ -61,6 +62,7 @@ import Joi from 'joi';
     TelegramModule,
     TwoFactorModule,
     MailModule,
+    CategoriesModule,
   ],
   controllers: [AppController], // register controller
   providers: [

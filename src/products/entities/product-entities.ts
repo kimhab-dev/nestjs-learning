@@ -1,3 +1,4 @@
+import { Category } from '../../categories/entities/category-entities';
 import { BaseEntity } from '../../database/entities/bas-entity';
 import { OrderItems } from '../../orders/entities/order-item.entities';
 import { User } from '../../users/entities/user.entity';
@@ -21,6 +22,15 @@ export class Product extends BaseEntity {
   @Column({ type: 'int' })
   stock: number;
 
+  @Column({ type: 'int' })
+  year: number;
+
+  @Column({ type: 'int' })
+  engince: number;
+
+  @Column({ type: 'varchar', length: 100 })
+  color: string;
+
   @Column({
     type: 'varchar',
     length: 255,
@@ -37,4 +47,11 @@ export class Product extends BaseEntity {
 
   @OneToMany(() => OrderItems, (orderItem) => orderItem.product)
   orderItem: OrderItems[];
+
+  @ManyToOne(() => Category, (category) => category.product, {
+    nullable: false,
+    onDelete: 'RESTRICT',
+  })
+  @JoinColumn({ name: 'category_id' })
+  category: Category;
 }
