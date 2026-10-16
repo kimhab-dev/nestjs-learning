@@ -1,5 +1,6 @@
 import { Expose, Type } from 'class-transformer';
 import { UsersResponseDto } from '../../users/dto/user-response.dto';
+import { CategoryResponseDto } from 'src/categories/dto/category-response.dto';
 
 export class ProductResponseDto {
   @Expose()
@@ -18,6 +19,15 @@ export class ProductResponseDto {
   description: string;
 
   @Expose()
+  year: number;
+
+  @Expose()
+  engince: number;
+
+  @Expose()
+  color: string;
+
+  @Expose()
   image: string;
 
   @Expose()
@@ -26,4 +36,8 @@ export class ProductResponseDto {
   @Expose()
   @Type(() => UsersResponseDto)
   user: UsersResponseDto;
+
+  @Expose()
+  @Type(() => CategoryResponseDto)
+  category: CategoryResponseDto;
 }

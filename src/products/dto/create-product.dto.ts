@@ -15,6 +15,21 @@ export class CreateProductDto {
 
   @Type(() => Number)
   @IsNumber()
+  category_id: number;
+
+  @Type(() => Number)
+  @IsNumber()
   @Min(0)
   stock: number;
+
+  @Type(() => Number)
+  @IsNumber()
+  year: number;
+
+  @Type(() => Number)
+  @IsNumber()
+  engince: number;
+
+  @IsString()
+  color: string;
 }

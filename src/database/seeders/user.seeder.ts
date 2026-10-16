@@ -12,6 +12,8 @@ export async function seedUsers(dataSource: DataSource) {
     },
   });
 
+  console.log(existingUser);
+
   if (existingUser) {
     console.log('Admin user already exists');
     return;

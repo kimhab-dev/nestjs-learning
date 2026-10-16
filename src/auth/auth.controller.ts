@@ -89,7 +89,7 @@ export class AuthController {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment
     const token = req.user.token;
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
-    return res.redirect(`http://localhost:5173/auth/callback?token=${token}`);
+    return res.redirect(`${process.env.FRONTEND_URL}?token=${token}`);
   }
 
   // ----------> Google Authenticator
@@ -102,7 +102,6 @@ export class AuthController {
   @Post('2fa/verify')
   @SuccessMessage('Login successfully.')
   verifySetup(@Body() dto: VerifyTwoFactorDto) {
-    console.log(dto);
     return this.authService.verifyLogin2fa(dto);
   }
 

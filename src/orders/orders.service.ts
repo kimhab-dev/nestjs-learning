@@ -58,7 +58,6 @@ export class OrdersService {
     if (!order) {
       throw new NotFoundException('Order not found or not your order.');
     }
-    console.dir(order, { depth: null });
     return plainToInstance(OrderResponseDto, order, {
       excludeExtraneousValues: true,
     });

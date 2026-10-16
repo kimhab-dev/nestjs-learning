@@ -38,7 +38,11 @@ export class ProductsService {
       name: dto.name,
       price: dto.price,
       description: dto.description,
+      category: { id: dto.category_id },
       stock: dto.stock,
+      year: dto.year,
+      engince: dto.engince,
+      color: dto.color,
       user: { id: userId },
     });
     const saved = await this.productsRepository.save(product);
