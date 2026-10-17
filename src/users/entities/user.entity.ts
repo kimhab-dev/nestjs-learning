@@ -37,10 +37,7 @@ export class User extends BaseEntity {
 
   @Column({ type: 'varchar', length: 255, nullable: true })
   avatar: string;
-
-  @Column({ type: 'boolean', default: false })
-  twoFactorEnabled: boolean;
-
+  
   @Column({ type: 'varchar', length: 255, nullable: true })
   twoFactorSecret: string | null;
 

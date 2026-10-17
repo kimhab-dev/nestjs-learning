@@ -22,6 +22,7 @@ export class TwoFactorService {
       throw new NotFoundException('User not found.');
     }
     const secret = generateSecret();
+    user.twoFactorSecret = secret;
 
     const uri = generateURI({
       issuer: 'MyNestApp',

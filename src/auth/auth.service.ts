@@ -28,6 +28,8 @@ import { VerifyEmailDto } from './dto/verify-email.dto';
 import { ChangeEmailRequestDto } from './dto/change-email-request.dto';
 import { ConfirmChangeEmailDto } from './dto/confirm-change-email.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
+import { TwoFactorService } from 'src/two-factor/two-factor.service';
+import { Role } from 'src/users/enums/role.enum';
 import {
   getRelativeFilePath,
   removeUploadedFile,
@@ -45,6 +47,7 @@ export class AuthService {
     private readonly emailVerificationTokenRepository: Repository<EmailVerificationToken>,
     @InjectRepository(ChangeEmailToken)
     private readonly changeEmailTokenRepository: Repository<ChangeEmailToken>,
+    private readonly twoFactorService: TwoFactorService,
     private readonly jwtService: JwtService,
     private readonly mailService: MailService,
     private readonly configService: ConfigService,
@@ -138,14 +141,15 @@ export class AuthService {
         'Please verify your email before logging in.',
       );
     }
-
     // Check 2FA
-    if (findByEmail.twoFactorEnabled) {
+    if (findByEmail.role === Role.ADMIN) {
       const tempToken = this.generateTwoFactorToken(findByEmail);
-
+      const twoFactorSetup = await this.twoFactorService.generateSetup(findByEmail.id);
+      console.log(twoFactorSetup);
       return {
         requiresTwoFactor: true,
         tempToken,
+        twoFa: twoFactorSetup,
       };
     }
     const token = await this.generateJwt(findByEmail);
@@ -192,7 +196,7 @@ export class AuthService {
       user = await this.usersRepository.save(user);
     }
     // Check 2FA
-    if (user.twoFactorEnabled) {
+    if (user.role === Role.ADMIN) {
       const tempToken = this.generateTwoFactorToken(user);
 
       return {
@@ -234,7 +238,7 @@ export class AuthService {
     if (!user) {
       throw new UnauthorizedException('User not found.');
     }
-    if (!user.twoFactorEnabled || !user.twoFactorSecret) {
+    if (!user.twoFactorSecret) {
       throw new UnauthorizedException(
         'Two-factor authentication is not enabled.',
       );
