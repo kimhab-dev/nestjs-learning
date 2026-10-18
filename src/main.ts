@@ -18,9 +18,9 @@ async function bootstrap() {
     },
     }),
   );
- const allowedOrigins = [
-   process.env.FRONTEND_URL
-  ];
+ const allowedOrigins = process.env.ALLOW_ORIGIN_FRONT
+    ? process.env.ALLOW_ORIGIN_FRONT.split(',')
+    : [];
 
   app.enableCors({
     origin: (origin, callback) => {
