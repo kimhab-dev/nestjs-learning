@@ -22,8 +22,6 @@ async function bootstrap() {
     ? process.env.ALLOW_ORIGIN_FRONT.split(',')
     : [];
 
-  console.log(allowedOrigins);
-
   app.enableCors({
     origin: (origin, callback) => {
       // Allow requests without an Origin header, such as

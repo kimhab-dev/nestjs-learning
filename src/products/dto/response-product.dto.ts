@@ -34,10 +34,6 @@ export class ProductResponseDto {
   createdAt: Date;
 
   @Expose()
-  @Type(() => UsersResponseDto)
-  user: UsersResponseDto;
-
-  @Expose()
   @Type(() => CategoryResponseDto)
   category: CategoryResponseDto;
 }

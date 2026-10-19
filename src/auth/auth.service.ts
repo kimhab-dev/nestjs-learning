@@ -36,6 +36,8 @@ import {
 } from '../common/helpers/file-upload.helper';
 import { plainToInstance } from 'class-transformer';
 import { AllUsersResponseDto } from '../users/dto/user-response.dto';
+import { RegisterResponseDto } from './dto/response-register.dto';
+
 @Injectable()
 export class AuthService {
   constructor(
@@ -78,7 +80,7 @@ export class AuthService {
 
   // ----------------------------------------------------------------------
 
-  async register(dto: RegisterDto) {
+  async register(dto: RegisterDto): Promise<RegisterResponseDto> {
     const findByEmail = await this.usersRepository.findBy({ email: dto.email });
     if (findByEmail.length > 0) {
       throw new ConflictException('The email aready in use.');
@@ -91,6 +93,7 @@ export class AuthService {
       email: dto.email,
       password: hashPassword,
       isVerified: false,
+      avatar: 'uploads/defualt-avatar.jpg',
     });
     const saveUser = await this.usersRepository.save(user);
 
@@ -117,7 +120,9 @@ export class AuthService {
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { password, age, role, ...result } = saveUser;
-    return result;
+    return plainToInstance(RegisterResponseDto, result, {
+      excludeExtraneousValues: true,
+    });
   }
 
   async login(dto: LoginDto) {
@@ -141,17 +146,37 @@ export class AuthService {
         'Please verify your email before logging in.',
       );
     }
+
     // Check 2FA
-    if (findByEmail.role === Role.ADMIN) {
+    if (findByEmail.role === Role.ADMIN && !findByEmail.twoFactorEnabled) {
       const tempToken = this.generateTwoFactorToken(findByEmail);
-      const twoFactorSetup = await this.twoFactorService.generateSetup(findByEmail.id);
-      console.log(twoFactorSetup);
+      const twoFactorSetup = await this.twoFactorService.generateSetup(
+        findByEmail.id,
+      );
+      await this.usersRepository.update(
+        {
+          id: findByEmail.id,
+        },
+        {
+          twoFactorSecret: twoFactorSetup.secret,
+          twoFactorEnabled: true,
+        },
+      );
       return {
         requiresTwoFactor: true,
         tempToken,
         twoFa: twoFactorSetup,
       };
     }
+
+    if (findByEmail.role === Role.ADMIN && findByEmail.twoFactorEnabled) {
+      const tempToken = this.generateTwoFactorToken(findByEmail);
+      return {
+        requiresTwoFactor: true,
+        tempToken,
+      };
+    }
+
     const token = await this.generateJwt(findByEmail);
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { password, age, role, ...user } = findByEmail;
@@ -175,7 +200,7 @@ export class AuthService {
   }
 
   async validateGoogleUser(profile: any) {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
     const email = profile.emails?.[0]?.value;
 
     if (!email) {
@@ -183,14 +208,17 @@ export class AuthService {
     }
 
     let user = await this.usersRepository.findOne({
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       where: { email },
     });
 
     if (!user) {
       user = this.usersRepository.create({
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         name: profile.displayName,
         email,
         isVerified: true,
+        avatar: 'uploads/defualt-avatar.jpg',
       });
 
       user = await this.usersRepository.save(user);
@@ -198,10 +226,11 @@ export class AuthService {
     // Check 2FA
     if (user.role === Role.ADMIN) {
       const tempToken = this.generateTwoFactorToken(user);
-
+      const twoFactorSetup = await this.twoFactorService.generateSetup(user.id);
       return {
         requiresTwoFactor: true,
         tempToken,
+        twoFa: twoFactorSetup,
       };
     }
     const token = await this.generateJwt(user);
@@ -410,6 +439,7 @@ export class AuthService {
     userId: number,
     file: Express.Multer.File,
   ): Promise<AllUsersResponseDto> {
+    console.log(file);
     const user = await this.usersRepository.findOne({
       where: {
         id: userId,
