@@ -18,9 +18,11 @@ async function bootstrap() {
     },
     }),
   );
- const allowedOrigins = process.env.ALLOW_ORIGIN_FRONT
+  const allowedOrigins = process.env.ALLOW_ORIGIN_FRONT
     ? process.env.ALLOW_ORIGIN_FRONT.split(',')
     : [];
+
+  console.log(allowedOrigins);
 
   app.enableCors({
     origin: (origin, callback) => {
@@ -30,10 +32,7 @@ async function bootstrap() {
         return callback(null, true);
       }
 
-      return callback(
-        new Error(`CORS blocked this origin: ${origin}`),
-        false,
-      );
+      return callback(new Error(`CORS blocked this origin: ${origin}`), false);
     },
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],

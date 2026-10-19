@@ -3,6 +3,15 @@
 /node_modules
 /build
 
+# Ignore uploaded avatar files
+uploads/profiles/*
+
+# Ignore uploaded avatar files
+uploads/products/*
+
+# Keep folder structure
+!uploads/avatars/.gitkeep
+
 # Logs
 logs
 *.log
