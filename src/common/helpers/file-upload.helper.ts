@@ -20,6 +20,7 @@ export const DEFAULT_ALLOWED_IMAGE_TYPES = [
 export function multerUploadOptions(
   config: MulterUploadOptionsConfig = {},
 ): Options {
+  console.log(config);
   const destinationFolder = config.destination ?? 'misc';
   const maxFileSize = config.maxFileSize ?? 5 * 1024 * 1024; // 5 MB
   const allowedMimeTypes =

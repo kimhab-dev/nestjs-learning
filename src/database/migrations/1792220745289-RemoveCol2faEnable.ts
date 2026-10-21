@@ -1,14 +1,17 @@
-import { MigrationInterface, QueryRunner } from "typeorm";
+import { MigrationInterface, QueryRunner } from 'typeorm';
 
 export class RemoveCol2faEnable1792220745289 implements MigrationInterface {
-    name = 'RemoveCol2faEnable1792220745289'
+  name = 'RemoveCol2faEnable1792220745289';
 
-    public async up(queryRunner: QueryRunner): Promise<void> {
-        await queryRunner.query(`ALTER TABLE \`users\` DROP COLUMN \`twoFactorEnabled\``);
-    }
+  public async up(queryRunner: QueryRunner): Promise<void> {
+    await queryRunner.query(
+      `ALTER TABLE \`users\` DROP COLUMN \`twoFactorEnabled\``,
+    );
+  }
 
-    public async down(queryRunner: QueryRunner): Promise<void> {
-        await queryRunner.query(`ALTER TABLE \`users\` ADD \`twoFactorEnabled\` tinyint NOT NULL DEFAULT '0'`);
-    }
-
+  public async down(queryRunner: QueryRunner): Promise<void> {
+    await queryRunner.query(
+      `ALTER TABLE \`users\` ADD \`twoFactorEnabled\` tinyint NOT NULL DEFAULT '0'`,
+    );
+  }
 }

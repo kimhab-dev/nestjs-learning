@@ -3,6 +3,7 @@ import { BaseEntity } from '../../database/entities/bas-entity';
 import { OrderItems } from '../../orders/entities/order-item.entities';
 import { User } from '../../users/entities/user.entity';
 import { Column, Entity, JoinColumn, ManyToOne, OneToMany } from 'typeorm';
+import { ProductImage } from './productImage-entities';
 
 @Entity('products')
 export class Product extends BaseEntity {
@@ -54,4 +55,7 @@ export class Product extends BaseEntity {
   })
   @JoinColumn({ name: 'category_id' })
   category: Category;
+
+  @OneToMany(() => ProductImage, (image) => image.product)
+  images: ProductImage[];
 }

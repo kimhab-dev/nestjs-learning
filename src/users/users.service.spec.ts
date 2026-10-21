@@ -17,11 +17,11 @@ describe('UsersService', () => {
       providers: [
         UsersService,
         {
-            provide: getRepositoryToken(User),
-            useValue: mockUsersRepository,
-          },
-        ],
-      }).compile();
+          provide: getRepositoryToken(User),
+          useValue: mockUsersRepository,
+        },
+      ],
+    }).compile();
 
     service = module.get<UsersService>(UsersService);
   });

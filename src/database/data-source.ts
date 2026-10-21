@@ -8,6 +8,7 @@ import { Product } from '../products/entities/product-entities';
 import { ResetPasswordToken } from '../reset-password-token/reset-password-token.entity';
 import { ChangeEmailToken } from '../change-email-token/change-email-token.entity';
 import { Category } from '../categories/entities/category-entities';
+import { ProductImage } from '../products/entities/productImage-entities';
 
 export const AppDataSource = new DataSource({
   type: 'mysql',
@@ -27,6 +28,7 @@ export const AppDataSource = new DataSource({
     EmailVerificationToken,
     ChangeEmailToken,
     Category,
+    ProductImage,
   ],
 
   migrations: ['src/database/migrations/*.ts'],

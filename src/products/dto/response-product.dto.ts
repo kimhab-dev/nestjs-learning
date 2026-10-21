@@ -1,6 +1,25 @@
 import { Expose, Type } from 'class-transformer';
-import { UsersResponseDto } from '../../users/dto/user-response.dto';
-import { CategoryResponseDto } from 'src/categories/dto/category-response.dto';
+import { CategoryResponseDto } from '../../categories/dto/category-response.dto';
+
+export class ProductImageResponseDto {
+  @Expose()
+  id: number;
+
+  @Expose()
+  imageUrl: string;
+
+  @Expose()
+  sortOrder: number;
+
+  @Expose()
+  isPrimary: boolean;
+
+  @Expose()
+  productId: number;
+
+  @Expose()
+  createdAt: Date;
+}
 
 export class ProductResponseDto {
   @Expose()
@@ -36,4 +55,8 @@ export class ProductResponseDto {
   @Expose()
   @Type(() => CategoryResponseDto)
   category: CategoryResponseDto;
+
+  @Expose()
+  @Type(() => ProductImageResponseDto)
+  images: ProductImageResponseDto[];
 }

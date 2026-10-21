@@ -15,7 +15,7 @@ async function bootstrap() {
     helmet({
       crossOriginResourcePolicy: {
         policy: 'cross-origin',
-    },
+      },
     }),
   );
   const allowedOrigins = process.env.ALLOW_ORIGIN_FRONT
