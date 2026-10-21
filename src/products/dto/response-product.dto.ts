@@ -10,15 +10,6 @@ export class ProductImageResponseDto {
 
   @Expose()
   sortOrder: number;
-
-  @Expose()
-  isPrimary: boolean;
-
-  @Expose()
-  productId: number;
-
-  @Expose()
-  createdAt: Date;
 }
 
 export class ProductResponseDto {
@@ -58,5 +49,5 @@ export class ProductResponseDto {
 
   @Expose()
   @Type(() => ProductImageResponseDto)
-  images: ProductImageResponseDto[];
+  hightLightImage: ProductImageResponseDto[];
 }

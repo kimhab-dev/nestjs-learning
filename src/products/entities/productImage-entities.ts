@@ -16,7 +16,7 @@ export class ProductImage extends BaseEntity {
   @Column({ name: 'product_id', type: 'int', nullable: true })
   productId: number;
 
-  @ManyToOne(() => Product, (product) => product.images, {
+  @ManyToOne(() => Product, (product) => product.hightLightImage, {
     onDelete: 'CASCADE',
   })
   @JoinColumn({ name: 'product_id' })

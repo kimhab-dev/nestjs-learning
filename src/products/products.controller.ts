@@ -95,16 +95,6 @@ export class ProductsController {
     return this.productsService.uploadProductImage(id, file);
   }
 
-  // PATCH /products/:id/images/:imageId/primary — set an image as primary
-  @Patch(':id/images/:imageId/primary')
-  @SuccessMessage('Primary product image updated successfully.')
-  setPrimaryProductImage(
-    @Param('id', ParseIntPipe) id: number,
-    @Param('imageId', ParseIntPipe) imageId: number,
-  ) {
-    return this.productsService.setPrimaryProductImage(id, imageId);
-  }
-
   // DELETE /products/:id/images/:imageId — delete specific product image
   @Delete(':id/images/:imageId')
   @SuccessMessage('Product image deleted successfully.')

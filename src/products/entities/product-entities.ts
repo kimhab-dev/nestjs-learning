@@ -57,5 +57,5 @@ export class Product extends BaseEntity {
   category: Category;
 
   @OneToMany(() => ProductImage, (image) => image.product)
-  images: ProductImage[];
+  hightLightImage: ProductImage[];
 }

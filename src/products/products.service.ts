@@ -55,10 +55,10 @@ export class ProductsService {
 
   async findAll(): Promise<ProductResponseDto[]> {
     const products = await this.productsRepository.find({
-      relations: { user: true, category: true, images: true },
+      relations: { user: true, category: true, hightLightImage: true },
       order: {
         createdAt: 'DESC',
-        images: {
+        hightLightImage: {
           sortOrder: 'ASC',
         },
       },
@@ -72,9 +72,9 @@ export class ProductsService {
   async findById(id: number): Promise<ProductResponseDto> {
     const product = await this.productsRepository.findOne({
       where: { id },
-      relations: { user: true, category: true, images: true },
+      relations: { user: true, category: true, hightLightImage: true },
       order: {
-        images: {
+        hightLightImage: {
           sortOrder: 'ASC',
         },
       },
@@ -91,9 +91,9 @@ export class ProductsService {
   async findByOwner(userId: number): Promise<ProductResponseDto[]> {
     const products = await this.productsRepository.find({
       where: { user: { id: userId } },
-      relations: { user: true, category: true, images: true },
+      relations: { user: true, category: true, hightLightImage: true },
       order: {
-        images: {
+        hightLightImage: {
           sortOrder: 'ASC',
         },
       },
@@ -112,7 +112,7 @@ export class ProductsService {
       where: {
         id: productId,
       },
-      relations: { user: true, images: true },
+      relations: { user: true, hightLightImage: true },
     });
 
     if (!product) {
@@ -170,7 +170,7 @@ export class ProductsService {
   ): Promise<ProductResponseDto> {
     const product = await this.productsRepository.findOne({
       where: { id: productId },
-      relations: { images: true },
+      relations: { hightLightImage: true },
     });
 
     if (!product) {
@@ -178,7 +178,7 @@ export class ProductsService {
       throw new NotFoundException('Product not found.');
     }
 
-    const currentImages = product.images ?? [];
+    const currentImages = product.hightLightImage ?? [];
     const MAX_IMAGES = 4;
 
     if (currentImages.length + files.length > MAX_IMAGES) {
@@ -221,14 +221,14 @@ export class ProductsService {
   ): Promise<ProductResponseDto> {
     const product = await this.productsRepository.findOne({
       where: { id: productId },
-      relations: { images: true },
+      relations: { hightLightImage: true },
     });
 
     if (!product) {
       throw new NotFoundException('Product not found.');
     }
 
-    const imageToDelete = product.images?.find((img) => img.id === imageId);
+    const imageToDelete = product.hightLightImage?.find((img) => img.id === imageId);
     if (!imageToDelete) {
       throw new NotFoundException('Product image not found.');
     }
@@ -236,7 +236,7 @@ export class ProductsService {
     removeUploadedFile(imageToDelete.imageUrl);
     await this.productImagesRepository.delete(imageId);
 
-    const remainingImages = (product.images || []).filter(
+    const remainingImages = (product.hightLightImage || []).filter(
       (img) => img.id !== imageId,
     );
 
@@ -254,41 +254,11 @@ export class ProductsService {
     return this.findById(productId);
   }
 
-  // Set a specific image as primary
-  async setPrimaryProductImage(
-    productId: number,
-    imageId: number,
-  ): Promise<ProductResponseDto> {
-    const product = await this.productsRepository.findOne({
-      where: { id: productId },
-      relations: { images: true },
-    });
-
-    if (!product) {
-      throw new NotFoundException('Product not found.');
-    }
-
-    const targetImage = product.images?.find((img) => img.id === imageId);
-    if (!targetImage) {
-      throw new NotFoundException('Product image not found.');
-    }
-
-    for (const img of product.images) {
-      img.isPrimary = img.id === imageId;
-    }
-    await this.productImagesRepository.save(product.images);
-
-    product.image = targetImage.imageUrl;
-    await this.productsRepository.save(product);
-
-    return this.findById(productId);
-  }
-
   // DELETE /products/:id — delete a product and clean up all images
   async remove(id: number): Promise<void> {
     const product = await this.productsRepository.findOne({
       where: { id },
-      relations: { user: true, images: true },
+      relations: { user: true, hightLightImage: true },
     });
     if (!product) {
       throw new NotFoundException('Product not found.');
@@ -298,8 +268,8 @@ export class ProductsService {
       removeUploadedFile(product.image);
     }
 
-    if (product.images && product.images.length > 0) {
-      for (const img of product.images) {
+    if (product.hightLightImage && product.hightLightImage.length > 0) {
+      for (const img of product.hightLightImage) {
         removeUploadedFile(img.imageUrl);
       }
     }
